@@ -6,20 +6,20 @@ import com.google.gson.JsonParseException;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonReader;
 import com.mojang.datafixers.DataFixer;
-import me.jellysquid.mods.radon.common.db.spec.impl.PlayerDatabaseSpecs;
 import me.jellysquid.mods.radon.common.db.DatabaseItem;
 import me.jellysquid.mods.radon.common.db.LMDBInstance;
-import net.minecraft.datafixer.DataFixTypes;
+import me.jellysquid.mods.radon.common.db.spec.impl.PlayerDatabaseSpecs;
+import net.minecraft.Util;
+import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtHelper;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.stat.ServerStatHandler;
-import net.minecraft.stat.Stat;
-import net.minecraft.stat.StatHandler;
-import net.minecraft.stat.StatType;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.stats.ServerStatsCounter;
+import net.minecraft.stats.Stat;
+import net.minecraft.stats.StatType;
+import net.minecraft.stats.StatsCounter;
+import net.minecraft.util.datafix.DataFixTypes;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -35,22 +35,22 @@ import java.util.Optional;
 import java.util.UUID;
 
 @SuppressWarnings("OverwriteAuthorRequired")
-@Mixin(ServerStatHandler.class)
-public abstract class MixinServerStatHandler extends StatHandler implements DatabaseItem {
-    private LMDBInstance storage;
+@Mixin(ServerStatsCounter.class)
+public abstract class MixinServerStatsCounter extends StatsCounter implements DatabaseItem {
+    private LMDBInstance database;
 
     @Shadow
-    protected abstract String asString();
+    protected abstract String toJson();
 
     @Shadow
     @Final
     private static Logger LOGGER;
 
     @Shadow
-    protected abstract <T> Optional<Stat<T>> createStat(StatType<T> type, String id);
+    protected abstract <T> Optional<Stat<T>> getStat(StatType<T> statType, String string);
 
     @Shadow
-    private static CompoundTag jsonToCompound(JsonObject jsonObject) {
+    private static CompoundTag fromJson(JsonObject jsonObject) {
         throw new UnsupportedOperationException();
     }
 
@@ -69,22 +69,22 @@ public abstract class MixinServerStatHandler extends StatHandler implements Data
 
     @Overwrite
     public void save() {
-        this.storage
+        this.database
                 .getTransaction(PlayerDatabaseSpecs.STATISTICS)
-                .add(this.getUuid(), this.asString());
+                .add(this.getUuid(), this.toJson());
     }
 
 
     @Override
     public LMDBInstance getStorage() {
-        return this.storage;
+        return this.database;
     }
 
     @Override
     public void setStorage(LMDBInstance storage) {
-        this.storage = storage;
+        this.database = storage;
 
-        String json = this.storage
+        String json = this.database
                 .getDatabase(PlayerDatabaseSpecs.STATISTICS)
                 .getValue(this.getUuid());
 
@@ -93,7 +93,7 @@ public abstract class MixinServerStatHandler extends StatHandler implements Data
         }
 
         try {
-            this.parse(this.server.getDataFixer(), json);
+            this.parseLocal(this.server.getFixerUpper(), json);
         } catch (JsonParseException var5) {
             LOGGER.error("Couldn't parse statistics file for player {}", this.getUuid(), var5);
         } catch (Exception var4) {
@@ -102,7 +102,7 @@ public abstract class MixinServerStatHandler extends StatHandler implements Data
     }
 
     @Overwrite
-    public void parse(DataFixer dataFixer, String json) {
+    public void parseLocal(DataFixer dataFixer, String json) {
         try (JsonReader jsonReader = new JsonReader(new StringReader(json))) {
             jsonReader.setLenient(false);
 
@@ -113,13 +113,13 @@ public abstract class MixinServerStatHandler extends StatHandler implements Data
                 return;
             }
 
-            CompoundTag tag = jsonToCompound(jsonElement.getAsJsonObject());
+            CompoundTag tag = fromJson(jsonElement.getAsJsonObject());
 
             if (!tag.contains("DataVersion", 99)) {
                 tag.putInt("DataVersion", 1343);
             }
 
-            tag = NbtHelper.update(dataFixer, DataFixTypes.STATS, tag, tag.getInt("DataVersion"));
+            tag = NbtUtils.update(dataFixer, DataFixTypes.STATS, tag, tag.getInt("DataVersion"));
 
             if (!tag.contains("stats", 10)) {
                 return;
@@ -127,22 +127,22 @@ public abstract class MixinServerStatHandler extends StatHandler implements Data
 
             CompoundTag stats = tag.getCompound("stats");
 
-            for (String string : stats.getKeys()) {
+            for (String string : stats.getAllKeys()) {
                 if (!stats.contains(string, 10)) {
                     continue;
                 }
 
-                Util.ifPresentOrElse(Registry.STAT_TYPE.getOrEmpty(new Identifier(string)), (statType) -> {
+                Util.ifElse(Registry.STAT_TYPE.getOptional(new ResourceLocation(string)), (statType) -> {
                     CompoundTag compoundTag2x = stats.getCompound(string);
 
-                    for (String string2 : compoundTag2x.getKeys()) {
+                    for (String string2 : compoundTag2x.getAllKeys()) {
                         if (!compoundTag2x.contains(string2, 99)) {
                             LOGGER.warn("Invalid statistic value on player {}: Don't know what {} is for key {}", this.getUuid(), compoundTag2x.get(string2), string2);
                             continue;
                         }
 
-                        Util.ifPresentOrElse(this.createStat(statType, string2), (stat) -> {
-                            this.statMap.put(stat, compoundTag2x.getInt(string2));
+                        Util.ifElse(this.getStat(statType, string2), (stat) -> {
+                            this.stats.put(stat, compoundTag2x.getInt(string2));
                         }, () -> LOGGER.warn("Invalid statistic on player {}: Don't know what {} is", this.getUuid(), string2));
                     }
                 }, () -> LOGGER.warn("Invalid statistic type on player {}: Don't know what {} is", this.getUuid(), string));

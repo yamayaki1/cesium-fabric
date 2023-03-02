@@ -2,14 +2,14 @@ package me.jellysquid.mods.radon.common.db.serializer;
 
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-import me.jellysquid.mods.radon.common.db.serializer.val.CompoundTagSerializer;
-import me.jellysquid.mods.radon.common.db.serializer.val.StringSerializer;
 import me.jellysquid.mods.radon.common.db.serializer.key.ChunkPosSerializer;
 import me.jellysquid.mods.radon.common.db.serializer.key.ChunkSectionPosSerializer;
 import me.jellysquid.mods.radon.common.db.serializer.key.UUIDSerializer;
+import me.jellysquid.mods.radon.common.db.serializer.val.CompoundTagSerializer;
+import me.jellysquid.mods.radon.common.db.serializer.val.StringSerializer;
+import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.ChunkSectionPos;
+import net.minecraft.world.level.ChunkPos;
 
 import java.util.UUID;
 
@@ -19,7 +19,7 @@ public class DefaultSerializers {
 
     static {
         keySerializers.put(UUID.class, new UUIDSerializer());
-        keySerializers.put(ChunkSectionPos.class, new ChunkSectionPosSerializer());
+        keySerializers.put(SectionPos.class, new ChunkSectionPosSerializer());
         keySerializers.put(ChunkPos.class, new ChunkPosSerializer());
 
         valueSerializers.put(CompoundTag.class, new CompoundTagSerializer());

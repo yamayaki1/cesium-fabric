@@ -2,11 +2,11 @@ package me.jellysquid.mods.radon.common.db;
 
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-import me.jellysquid.mods.radon.common.db.spec.DatabaseSpec;
 import me.jellysquid.mods.radon.common.db.lightning.Env;
 import me.jellysquid.mods.radon.common.db.lightning.EnvInfo;
 import me.jellysquid.mods.radon.common.db.lightning.LmdbException;
 import me.jellysquid.mods.radon.common.db.lightning.Txn;
+import me.jellysquid.mods.radon.common.db.spec.DatabaseSpec;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.util.lmdb.LMDB;

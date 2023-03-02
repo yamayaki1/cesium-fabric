@@ -5,14 +5,14 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "MixinMinecraftServer",
-    "MixinPlayerAdvancementTracker",
-    "MixinPlayerManager",
-    "MixinSerializingRegionBasedStorage",
-    "MixinServerStatHandler",
-    "MixinServerWorld",
-    "MixinThreadedAnvilChunkStorage",
-    "MixinVersionedChunkStorage",
-    "MixinWorldSaveHandler"
+    "MixinPlayerAdvancements",
+    "MixinPlayerList",
+    "MixinSectionStorage",
+    "MixinServerStatsCounter",
+    "MixinServerLevel",
+    "MixinChunkMap",
+    "MixinChunkStorage",
+    "MixinPlayerDataStorage"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,7 +1,7 @@
 package me.jellysquid.mods.radon.common.db.serializer.key;
 
 import me.jellysquid.mods.radon.common.db.serializer.KeySerializer;
-import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.level.ChunkPos;
 
 import java.nio.ByteBuffer;
 

@@ -1,7 +1,5 @@
 package me.jellysquid.mods.radon.common.io.compression;
 
-import org.lwjgl.util.zstd.Zstd;
-
 import java.nio.ByteBuffer;
 
 public class DefaultStreamCompressors {

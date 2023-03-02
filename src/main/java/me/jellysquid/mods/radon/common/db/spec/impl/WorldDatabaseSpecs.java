@@ -3,7 +3,7 @@ package me.jellysquid.mods.radon.common.db.spec.impl;
 import me.jellysquid.mods.radon.common.db.spec.DatabaseSpec;
 import me.jellysquid.mods.radon.common.io.compression.DefaultStreamCompressors;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.level.ChunkPos;
 
 public class WorldDatabaseSpecs {
     public static final DatabaseSpec<ChunkPos, CompoundTag> CHUNK_DATA =
