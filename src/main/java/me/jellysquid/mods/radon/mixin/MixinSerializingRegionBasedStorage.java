@@ -54,7 +54,7 @@ public class MixinSerializingRegionBasedStorage<R> implements ChunkDatabaseAcces
     @Redirect(method = "save", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/storage/StorageIoWorker;setResult(Lnet/minecraft/util/math/ChunkPos;Lnet/minecraft/nbt/CompoundTag;)Ljava/util/concurrent/CompletableFuture;"))
     private CompletableFuture<Void> redirectSaveNbt(StorageIoWorker storageIoWorker, ChunkPos pos, CompoundTag nbt) {
         this.storage
-                .getTransaction(WorldDatabaseSpecs.CHUNK_DATA)
+                .getTransaction(WorldDatabaseSpecs.POI)
                 .add(pos, nbt);
 
         return null;
