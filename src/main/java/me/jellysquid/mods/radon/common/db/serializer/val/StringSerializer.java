@@ -12,6 +12,7 @@ public class StringSerializer implements ValueSerializer<String> {
 
         ByteBuffer buf = ByteBuffer.allocateDirect(data.length);
         buf.put(data);
+        buf.rewind();
 
         return buf;
     }
