@@ -17,14 +17,12 @@ import java.util.Iterator;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class LMDBInstance {
-    private static final long MAP_RESIZE_STEP = 16 * 1024 * 1024;
-    private static final Logger LOGGER = LogManager.getLogger("Argon");
-
+    private static final Logger LOGGER = LogManager.getLogger("Radon");
     protected final Env env;
     protected final Reference2ObjectMap<DatabaseSpec<?, ?>, KVDatabase<?, ?>> databases = new Reference2ObjectOpenHashMap<>();
     protected final Reference2ObjectMap<DatabaseSpec<?, ?>, KVTransaction<?, ?>> transactions = new Reference2ObjectOpenHashMap<>();
-
     protected final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private final int resizeStep;
 
     public LMDBInstance(File dir, String name, DatabaseSpec<?, ?>[] databases) {
         if (!dir.isDirectory() && !dir.mkdirs()) {
@@ -37,12 +35,11 @@ public class LMDBInstance {
                 .setMaxDatabases(databases.length)
                 .open(file, LMDB.MDB_NOLOCK | LMDB.MDB_NOSUBDIR);
 
+        this.resizeStep = Arrays.stream(databases).mapToInt(DatabaseSpec::getInitialSize).sum();
+
         EnvInfo info = this.env.getInfo();
-
-        int initialSize = Arrays.stream(databases).mapToInt(DatabaseSpec::getInitialSize).sum();
-
-        if (info.mapSize < initialSize) {
-            this.env.setMapSize(initialSize);
+        if (info.mapSize < this.resizeStep) {
+            this.env.setMapSize(this.resizeStep);
         }
 
         for (DatabaseSpec<?, ?> spec : databases) {
@@ -100,12 +97,9 @@ public class LMDBInstance {
                     transaction.addChanges(txn);
                 } catch (LmdbException e) {
                     if (e.getCode() == LMDB.MDB_MAP_FULL) {
-                        LOGGER.warn("Map became full during commit; Requesting " +
-                                "another {} bytes and restarting transaction", MAP_RESIZE_STEP);
-
                         txn.abort();
 
-                        this.growMap(MAP_RESIZE_STEP);
+                        this.growMap();
 
                         txn = this.env.txnWrite();
                         it = this.transactions.values()
@@ -127,9 +121,9 @@ public class LMDBInstance {
                 .forEach(KVTransaction::clear);
     }
 
-    private void growMap(long size) {
+    private void growMap() {
         EnvInfo info = this.env.getInfo();
-        long newSize = info.mapSize + size;
+        long newSize = info.mapSize + this.resizeStep;
         LOGGER.info("Growing map size from {} to {} bytes", info.mapSize, newSize);
         this.env.setMapSize(newSize);
     }

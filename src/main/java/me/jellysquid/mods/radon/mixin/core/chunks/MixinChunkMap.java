@@ -1,4 +1,4 @@
-package me.jellysquid.mods.radon.mixin;
+package me.jellysquid.mods.radon.mixin.core.chunks;
 
 import com.mojang.datafixers.DataFixer;
 import me.jellysquid.mods.radon.common.ChunkDatabaseAccess;

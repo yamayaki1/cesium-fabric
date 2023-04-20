@@ -87,6 +87,10 @@ public class KVDatabase<K, V> {
         return this.compressor;
     }
 
+    public ReentrantReadWriteLock getLock() {
+        return this.storage.getLock();
+    }
+
     public void putValue(Txn txn, K key, ByteBuffer value) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             this.dbi.put(txn, this.getKeyBuffer(stack, key), value, 0);

@@ -1,9 +1,10 @@
-package me.jellysquid.mods.radon.mixin;
+package me.jellysquid.mods.radon.mixin.core.chunks;
 
 import com.mojang.datafixers.DataFixer;
 import me.jellysquid.mods.radon.common.db.DatabaseItem;
 import me.jellysquid.mods.radon.common.db.LMDBInstance;
 import me.jellysquid.mods.radon.common.db.spec.impl.WorldDatabaseSpecs;
+import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
@@ -49,20 +50,24 @@ public class MixinEntityStorage {
 
     @Redirect(method = "loadEntities", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/IOWorker;loadAsync(Lnet/minecraft/world/level/ChunkPos;)Ljava/util/concurrent/CompletableFuture;"))
     private CompletableFuture<Optional<CompoundTag>> redirectReLoadEntities(IOWorker storageIoWorker, ChunkPos pos) {
-        CompoundTag compoundTag = this.storage
-                .getDatabase(WorldDatabaseSpecs.ENTITY)
-                .getValue(pos);
+        return CompletableFuture.supplyAsync(() -> {
+            CompoundTag compoundTag = this.storage
+                    .getDatabase(WorldDatabaseSpecs.ENTITY)
+                    .getValue(pos);
 
-        return CompletableFuture.completedFuture(Optional.ofNullable(compoundTag));
+            return Optional.ofNullable(compoundTag);
+        }, Util.backgroundExecutor());
     }
 
     @Redirect(method = "storeEntities", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/IOWorker;store(Lnet/minecraft/world/level/ChunkPos;Lnet/minecraft/nbt/CompoundTag;)Ljava/util/concurrent/CompletableFuture;"))
     private CompletableFuture<Void> redirectStoreEntities(IOWorker instance, ChunkPos pos, @Nullable CompoundTag nbt) {
-        this.storage
-                .getTransaction(WorldDatabaseSpecs.ENTITY)
-                .add(pos, nbt);
+        return CompletableFuture.supplyAsync(() -> {
+            this.storage
+                    .getTransaction(WorldDatabaseSpecs.ENTITY)
+                    .add(pos, nbt);
 
-        return CompletableFuture.completedFuture(null);
+            return null;
+        }, Util.backgroundExecutor());
     }
 
     @Redirect(method = "flush", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/IOWorker;synchronize(Z)Ljava/util/concurrent/CompletableFuture;"))

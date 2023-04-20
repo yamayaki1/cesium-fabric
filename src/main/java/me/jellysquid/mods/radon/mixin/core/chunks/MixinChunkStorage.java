@@ -1,9 +1,10 @@
-package me.jellysquid.mods.radon.mixin;
+package me.jellysquid.mods.radon.mixin.core.chunks;
 
 import com.mojang.datafixers.DataFixer;
 import me.jellysquid.mods.radon.common.ChunkDatabaseAccess;
 import me.jellysquid.mods.radon.common.db.LMDBInstance;
 import me.jellysquid.mods.radon.common.db.spec.impl.WorldDatabaseSpecs;
+import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.storage.ChunkStorage;
@@ -57,21 +58,27 @@ public class MixinChunkStorage implements ChunkDatabaseAccess {
 
     @Overwrite
     public CompletableFuture<Optional<CompoundTag>> read(ChunkPos chunkPos) {
-        CompoundTag compoundTag = this.database.getDatabase(WorldDatabaseSpecs.CHUNK_DATA)
-                .getValue(chunkPos);
+        return CompletableFuture.supplyAsync(() -> {
+            CompoundTag compoundTag = this.database.getDatabase(WorldDatabaseSpecs.CHUNK_DATA)
+                    .getValue(chunkPos);
 
-        return CompletableFuture.completedFuture(Optional.ofNullable(compoundTag));
+            return Optional.ofNullable(compoundTag);
+        }, Util.backgroundExecutor());
     }
 
     @Overwrite
     public void write(ChunkPos chunkPos, CompoundTag compoundTag) {
-        this.database
-                .getTransaction(WorldDatabaseSpecs.CHUNK_DATA)
-                .add(chunkPos, compoundTag);
+        CompletableFuture.supplyAsync(() -> {
+            this.database
+                    .getTransaction(WorldDatabaseSpecs.CHUNK_DATA)
+                    .add(chunkPos, compoundTag);
 
-        if (this.legacyStructureHandler != null) {
-            this.legacyStructureHandler.removeIndex(chunkPos.toLong());
-        }
+            if (this.legacyStructureHandler != null) {
+                this.legacyStructureHandler.removeIndex(chunkPos.toLong());
+            }
+
+            return null;
+        }, Util.backgroundExecutor());
     }
 
     @Overwrite

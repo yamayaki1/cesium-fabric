@@ -1,4 +1,4 @@
-package me.jellysquid.mods.radon.mixin;
+package me.jellysquid.mods.radon.mixin.core.players;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;

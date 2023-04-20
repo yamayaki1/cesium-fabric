@@ -1,4 +1,4 @@
-package me.jellysquid.mods.radon.mixin;
+package me.jellysquid.mods.radon.mixin.core.players;
 
 import me.jellysquid.mods.radon.common.PlayerDatabaseAccess;
 import net.minecraft.server.MinecraftServer;
@@ -23,7 +23,7 @@ public class MixinMinecraftServer {
                 .flushChanges();
     }
 
-    @Inject(method = "stopServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;saveAll()V"))
+    @Inject(method = "stopServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;removeAll()V"))
     private void postSaveAllPlayerList(CallbackInfo ci) {
         ((PlayerDatabaseAccess) this.playerList)
                 .getDatabase()

@@ -4,18 +4,21 @@
   "package": "me.jellysquid.mods.radon.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "MixinChunkMap",
-    "MixinChunkStorage",
-    "MixinEntityStorage",
-    "MixinMinecraftServer",
-    "MixinPlayerAdvancements",
-    "MixinPlayerDataStorage",
-    "MixinPlayerList",
-    "MixinSectionStorage",
-    "MixinServerLevel",
-    "MixinServerStatsCounter"
+    "core.chunks.MixinChunkMap",
+    "core.chunks.MixinChunkStorage",
+    "core.chunks.MixinEntityStorage",
+    "core.chunks.MixinSectionStorage",
+    "core.chunks.MixinServerLevel",
+    "core.players.MixinMinecraftServer",
+    "core.players.MixinPlayerAdvancements",
+    "core.players.MixinPlayerDataStorage",
+    "core.players.MixinPlayerList",
+    "core.players.MixinServerStatsCounter"
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "client": [
+    "converter.MixinEditWorldScreen"
+  ]
 }

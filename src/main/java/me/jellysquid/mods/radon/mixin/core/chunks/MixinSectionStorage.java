@@ -1,9 +1,10 @@
-package me.jellysquid.mods.radon.mixin;
+package me.jellysquid.mods.radon.mixin.core.chunks;
 
 import com.mojang.datafixers.DataFixer;
 import me.jellysquid.mods.radon.common.ChunkDatabaseAccess;
 import me.jellysquid.mods.radon.common.db.LMDBInstance;
 import me.jellysquid.mods.radon.common.db.spec.impl.WorldDatabaseSpecs;
+import net.minecraft.Util;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.datafix.DataFixTypes;
@@ -53,20 +54,24 @@ public class MixinSectionStorage<R> implements ChunkDatabaseAccess {
 
     @Redirect(method = "tryRead", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/IOWorker;loadAsync(Lnet/minecraft/world/level/ChunkPos;)Ljava/util/concurrent/CompletableFuture;"))
     private CompletableFuture<Optional<CompoundTag>> redirectTryRead(IOWorker storageIoWorker, ChunkPos pos) {
-        CompoundTag compoundTag = this.database
-                .getDatabase(WorldDatabaseSpecs.POI)
-                .getValue(pos);
+        return CompletableFuture.supplyAsync(() -> {
+            CompoundTag compoundTag = this.database
+                    .getDatabase(WorldDatabaseSpecs.POI)
+                    .getValue(pos);
 
-        return CompletableFuture.completedFuture(Optional.ofNullable(compoundTag));
+            return Optional.ofNullable(compoundTag);
+        }, Util.backgroundExecutor());
     }
 
     @Redirect(method = "writeColumn(Lnet/minecraft/world/level/ChunkPos;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/IOWorker;store(Lnet/minecraft/world/level/ChunkPos;Lnet/minecraft/nbt/CompoundTag;)Ljava/util/concurrent/CompletableFuture;"))
     private CompletableFuture<Void> redirectWriteColumn(IOWorker storageIoWorker, ChunkPos pos, CompoundTag nbt) {
-        this.database
-                .getTransaction(WorldDatabaseSpecs.POI)
-                .add(pos, nbt);
+        return CompletableFuture.supplyAsync(() -> {
+            this.database
+                    .getTransaction(WorldDatabaseSpecs.POI)
+                    .add(pos, nbt);
 
-        return null;
+            return null;
+        }, Util.backgroundExecutor());
     }
 
     @Redirect(method = "close", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/IOWorker;close()V"))

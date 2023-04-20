@@ -35,7 +35,11 @@ public class Dbi {
             key.mv_data(keyBuf);
             key.mv_size(keyBuf.remaining());
 
-            LmdbUtil.checkError(LMDB.mdb_del(txn.raw(), this.dbi, key, null));
+            int result = LMDB.mdb_del(txn.raw(), this.dbi, key, null);
+
+            if (result != LMDB.MDB_NOTFOUND) {
+                LmdbUtil.checkError(result);
+            }
         }
     }
 

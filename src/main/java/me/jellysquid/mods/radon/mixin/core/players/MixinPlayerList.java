@@ -1,4 +1,4 @@
-package me.jellysquid.mods.radon.mixin;
+package me.jellysquid.mods.radon.mixin.core.players;
 
 import me.jellysquid.mods.radon.common.PlayerDatabaseAccess;
 import me.jellysquid.mods.radon.common.db.DatabaseItem;

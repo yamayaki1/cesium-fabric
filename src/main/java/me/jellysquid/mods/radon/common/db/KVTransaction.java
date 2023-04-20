@@ -6,6 +6,7 @@ import me.jellysquid.mods.radon.common.db.lightning.Txn;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class KVTransaction<K, V> {
     private final KVDatabase<K, V> storage;
@@ -16,6 +17,10 @@ public class KVTransaction<K, V> {
     }
 
     public void add(K key, V value) {
+        ReentrantReadWriteLock lock = this.storage.getLock();
+        lock.writeLock()
+                .lock();
+
         try {
             if (value == null) {
                 this.pending.put(key, null);
@@ -31,6 +36,9 @@ public class KVTransaction<K, V> {
             this.pending.put(key, compressedData);
         } catch (IOException e) {
             throw new RuntimeException("Couldn't serialize value", e);
+        } finally {
+            lock.writeLock()
+                    .unlock();
         }
     }
 

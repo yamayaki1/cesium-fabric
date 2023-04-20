@@ -18,6 +18,7 @@
       "me.jellysquid.mods.radon.RadonMod"
     ]
   },
+  "accessWidener": "radon.accesswidener",
   "mixins": [
     "radon.mixins.json"
   ],
