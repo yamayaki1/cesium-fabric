@@ -1,29 +1,33 @@
 {
   "schemaVersion": 1,
-  "id": "radon",
+  "id": "cesium",
   "version": "${version}",
-  "name": "Radon",
+  "name": "Cesium",
   "description": "An alternative storage format for Minecraft worlds which improves performance and reliability.",
   "authors": [
-    "JellySquid"
+    "JellySquid",
+    "Yamayaki"
   ],
   "contact": {
-    "homepage": "https://jellysquid.me",
-    "sources": "https://github.com/jellysquid3/radon-fabric"
+    "homepage": "https://github.com/YamayakiDevelopments",
+    "sources": "https://github.com/YamayakiDevelopments/cesium-fabric"
   },
   "license": "LGPL-3.0",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "me.jellysquid.mods.radon.RadonMod"
+      "de.yamayaki.cesium.CesiumMod"
     ]
   },
-  "accessWidener": "radon.accesswidener",
+  "accessWidener": "cesium.accesswidener",
   "mixins": [
-    "radon.mixins.json"
+    "cesium.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.7.4",
-    "minecraft": "1.19.x"
+    "minecraft": "1.19.4"
+  },
+  "breaks": {
+    "c2me-base": "*"
   }
 }

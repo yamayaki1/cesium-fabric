@@ -16,7 +16,7 @@ repositories {
 }
 
 loom {
-	accessWidenerPath = file("src/main/resources/radon.accesswidener")
+	accessWidenerPath = file("src/main/resources/cesium.accesswidener")
 }
 
 configurations {
@@ -68,7 +68,7 @@ java {
 
 jar {
 	from (project.configurations.natives) {
-		into ("natives/radon")
+		into ("natives/cesium")
 	}
 
 	from("LICENSE") {
