@@ -5,7 +5,7 @@ import me.jellysquid.mods.radon.common.db.DatabaseItem;
 import me.jellysquid.mods.radon.common.db.LMDBInstance;
 import me.jellysquid.mods.radon.common.db.spec.DatabaseSpec;
 import me.jellysquid.mods.radon.common.db.spec.impl.PlayerDatabaseSpecs;
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.LayeredRegistryAccess;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerAdvancements;
 import net.minecraft.server.level.ServerPlayer;
@@ -33,10 +33,10 @@ public class MixinPlayerList implements PlayerDatabaseAccess {
     private LMDBInstance database;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void reinit(MinecraftServer server, RegistryAccess.RegistryHolder registryManager, PlayerDataStorage saveHandler, int maxPlayers, CallbackInfo ci) {
-        File dir = server.getWorldPath(LevelResource.PLAYER_ADVANCEMENTS_DIR).getParent().toFile();
+    private void reinit(MinecraftServer minecraftServer, LayeredRegistryAccess<?> layeredRegistryAccess, PlayerDataStorage playerDataStorage, int i, CallbackInfo ci) {
+        File dir = minecraftServer.getWorldPath(LevelResource.PLAYER_ADVANCEMENTS_DIR).getParent().toFile();
 
-        this.database = new LMDBInstance(dir, "players", new DatabaseSpec[] {
+        this.database = new LMDBInstance(dir, "players", new DatabaseSpec[]{
                 PlayerDatabaseSpecs.PLAYER_DATA,
                 PlayerDatabaseSpecs.ADVANCEMENTS,
                 PlayerDatabaseSpecs.STATISTICS

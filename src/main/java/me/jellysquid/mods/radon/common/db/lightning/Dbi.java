@@ -29,6 +29,16 @@ public class Dbi {
         }
     }
 
+    public void delete(Txn txn, ByteBuffer keyBuf) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            MDBVal key = new MDBVal(stack.malloc(MDBVal.SIZEOF));
+            key.mv_data(keyBuf);
+            key.mv_size(keyBuf.remaining());
+
+            LmdbUtil.checkError(LMDB.mdb_del(txn.raw(), this.dbi, key, null));
+        }
+    }
+
     public void close() {
         LMDB.mdb_dbi_close(this.env.raw(), this.dbi);
     }

@@ -16,15 +16,6 @@ public class Env {
         this.env = env;
     }
 
-    public Dbi openDbi(String name, int flags) {
-        return LmdbUtil.transaction(this, (stack, txn) -> {
-            IntBuffer ib = stack.mallocInt(1);
-            LmdbUtil.checkError(LMDB.mdb_dbi_open(txn, name, flags, ib));
-
-            return new Dbi(this, ib.get(0));
-        });
-    }
-
     public static Builder builder() {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             PointerBuffer pb = stack.mallocPointer(1);
@@ -32,6 +23,15 @@ public class Env {
 
             return new Env.Builder(pb.get(0));
         }
+    }
+
+    public Dbi openDbi(String name, int flags) {
+        return LmdbUtil.transaction(this, (stack, txn) -> {
+            IntBuffer ib = stack.mallocInt(1);
+            LmdbUtil.checkError(LMDB.mdb_dbi_open(txn, name, flags, ib));
+
+            return new Dbi(this, ib.get(0));
+        });
     }
 
     public EnvInfo getInfo() {
@@ -90,7 +90,7 @@ public class Env {
         }
 
         public Env open(String path, int flags) {
-            LmdbUtil.checkError(LMDB.mdb_env_open(this.pointer, path, flags, 0_664));
+            LmdbUtil.checkError(LMDB.mdb_env_open(this.pointer, path, flags, 436));
 
             return new Env(this.pointer);
         }

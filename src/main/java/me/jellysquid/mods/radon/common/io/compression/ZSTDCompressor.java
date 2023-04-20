@@ -5,6 +5,14 @@ import org.lwjgl.util.zstd.Zstd;
 import java.nio.ByteBuffer;
 
 public class ZSTDCompressor implements StreamCompressor {
+    private static long checkError(long rc) {
+        if (Zstd.ZSTD_isError(rc)) {
+            throw new IllegalStateException(Zstd.ZSTD_getErrorName(rc));
+        }
+
+        return rc;
+    }
+
     @Override
     public ByteBuffer compress(ByteBuffer src) {
         ByteBuffer dst = ByteBuffer.allocateDirect((int) Zstd.ZSTD_COMPRESSBOUND(src.remaining()));
@@ -19,13 +27,5 @@ public class ZSTDCompressor implements StreamCompressor {
         checkError(Zstd.ZSTD_decompress(dst, src));
 
         return dst;
-    }
-
-    private static long checkError(long rc) {
-        if (Zstd.ZSTD_isError(rc)) {
-            throw new IllegalStateException(Zstd.ZSTD_getErrorName(rc));
-        }
-
-        return rc;
     }
 }

@@ -17,6 +17,11 @@ public class KVTransaction<K, V> {
 
     public void add(K key, V value) {
         try {
+            if (value == null) {
+                this.pending.put(key, null);
+                return;
+            }
+
             ByteBuffer data = this.storage.getValueSerializer()
                     .serialize(value);
 
@@ -31,7 +36,11 @@ public class KVTransaction<K, V> {
 
     void addChanges(Txn txn) {
         for (Object2ReferenceMap.Entry<K, ByteBuffer> entry : this.pending.object2ReferenceEntrySet()) {
-            this.storage.putValue(txn, entry.getKey(), entry.getValue());
+            if (entry.getValue() != null) {
+                this.storage.putValue(txn, entry.getKey(), entry.getValue());
+            } else {
+                this.storage.delete(txn, entry.getKey());
+            }
         }
     }
 

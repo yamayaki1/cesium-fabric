@@ -10,7 +10,7 @@ import me.jellysquid.mods.radon.common.db.DatabaseItem;
 import me.jellysquid.mods.radon.common.db.LMDBInstance;
 import me.jellysquid.mods.radon.common.db.spec.impl.PlayerDatabaseSpecs;
 import net.minecraft.Util;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
@@ -20,7 +20,7 @@ import net.minecraft.stats.Stat;
 import net.minecraft.stats.StatType;
 import net.minecraft.stats.StatsCounter;
 import net.minecraft.util.datafix.DataFixTypes;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -37,22 +37,9 @@ import java.util.UUID;
 @SuppressWarnings("OverwriteAuthorRequired")
 @Mixin(ServerStatsCounter.class)
 public abstract class MixinServerStatsCounter extends StatsCounter implements DatabaseItem {
-    private LMDBInstance database;
-
-    @Shadow
-    protected abstract String toJson();
-
     @Shadow
     @Final
     private static Logger LOGGER;
-
-    @Shadow
-    protected abstract <T> Optional<Stat<T>> getStat(StatType<T> statType, String string);
-
-    @Shadow
-    private static CompoundTag fromJson(JsonObject jsonObject) {
-        throw new UnsupportedOperationException();
-    }
 
     @Shadow
     @Final
@@ -61,6 +48,19 @@ public abstract class MixinServerStatsCounter extends StatsCounter implements Da
     @Shadow
     @Final
     private MinecraftServer server;
+
+    private LMDBInstance database;
+
+    @Shadow
+    private static CompoundTag fromJson(JsonObject jsonObject) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Shadow
+    protected abstract String toJson();
+
+    @Shadow
+    protected abstract <T> Optional<Stat<T>> getStat(StatType<T> statType, String string);
 
     @Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Ljava/io/File;isFile()Z"))
     public boolean redirectDisableFileLoad(File file) {
@@ -114,12 +114,7 @@ public abstract class MixinServerStatsCounter extends StatsCounter implements Da
             }
 
             CompoundTag tag = fromJson(jsonElement.getAsJsonObject());
-
-            if (!tag.contains("DataVersion", 99)) {
-                tag.putInt("DataVersion", 1343);
-            }
-
-            tag = NbtUtils.update(dataFixer, DataFixTypes.STATS, tag, tag.getInt("DataVersion"));
+            tag = DataFixTypes.STATS.updateToCurrentVersion(dataFixer, tag, NbtUtils.getDataVersion(tag, 1343));
 
             if (!tag.contains("stats", 10)) {
                 return;
@@ -132,7 +127,7 @@ public abstract class MixinServerStatsCounter extends StatsCounter implements Da
                     continue;
                 }
 
-                Util.ifElse(Registry.STAT_TYPE.getOptional(new ResourceLocation(string)), (statType) -> {
+                Util.ifElse(BuiltInRegistries.STAT_TYPE.getOptional(new ResourceLocation(string)), (statType) -> {
                     CompoundTag compoundTag2x = stats.getCompound(string);
 
                     for (String string2 : compoundTag2x.getAllKeys()) {

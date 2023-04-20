@@ -5,12 +5,11 @@ import me.jellysquid.mods.radon.common.db.DatabaseItem;
 import me.jellysquid.mods.radon.common.db.LMDBInstance;
 import me.jellysquid.mods.radon.common.db.spec.impl.PlayerDatabaseSpecs;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.storage.PlayerDataStorage;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -23,9 +22,13 @@ import java.io.File;
 @SuppressWarnings("OverwriteAuthorRequired")
 @Mixin(PlayerDataStorage.class)
 public class MixinPlayerDataStorage implements DatabaseItem {
-    @Shadow @Final private static Logger LOGGER;
+    @Shadow
+    @Final
+    private static Logger LOGGER;
 
-    @Shadow @Final protected DataFixer fixerUpper;
+    @Shadow
+    @Final
+    protected DataFixer fixerUpper;
 
     private LMDBInstance database;
 
@@ -60,20 +63,19 @@ public class MixinPlayerDataStorage implements DatabaseItem {
 
         if (compoundTag != null) {
             int i = compoundTag.contains("DataVersion", 3) ? compoundTag.getInt("DataVersion") : -1;
-            playerEntity.load(NbtUtils.update(this.fixerUpper, DataFixTypes.PLAYER, compoundTag, i));
+            playerEntity.load(DataFixTypes.PLAYER.updateToCurrentVersion(this.fixerUpper, compoundTag, i));
         }
 
         return compoundTag;
     }
 
+    @Override
+    public LMDBInstance getStorage() {
+        return this.database;
+    }
 
     @Override
     public void setStorage(LMDBInstance storage) {
         this.database = storage;
-    }
-
-    @Override
-    public LMDBInstance getStorage() {
-        return this.database;
     }
 }

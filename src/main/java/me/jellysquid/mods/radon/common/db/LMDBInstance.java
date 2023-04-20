@@ -27,7 +27,7 @@ public class LMDBInstance {
     protected final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     public LMDBInstance(File dir, String name, DatabaseSpec<?, ?>[] databases) {
-        if (!dir.isDirectory() && dir.mkdirs()) {
+        if (!dir.isDirectory() && !dir.mkdirs()) {
             throw new RuntimeException("Couldn't create directory: " + dir);
         }
 

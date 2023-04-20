@@ -93,6 +93,12 @@ public class KVDatabase<K, V> {
         }
     }
 
+    public void delete(Txn txn, K key) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            this.dbi.delete(txn, this.getKeyBuffer(stack, key));
+        }
+    }
+
     public void close() {
         this.dbi.close();
     }

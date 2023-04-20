@@ -13,7 +13,7 @@ public class RadonMod implements ModInitializer {
     }
 
     private void loadNatives() {
-        DependencyExtractor.installLwjglNatives("lwjgl-lmdb", "3.2.2");
-        DependencyExtractor.installLwjglNatives("lwjgl-zstd", "3.2.2");
+        DependencyExtractor.installLwjglNatives("lwjgl-lmdb", "3.3.1");
+        DependencyExtractor.installLwjglNatives("lwjgl-zstd", "3.3.1");
     }
 }

@@ -19,8 +19,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings("OverwriteAuthorRequired")
 @Mixin(ChunkStorage.class)
@@ -37,7 +39,7 @@ public class MixinChunkStorage implements ChunkDatabaseAccess {
     private LMDBInstance database;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void reinit(File file, DataFixer dataFixer, boolean bl, CallbackInfo ci) {
+    private void reinit(Path path, DataFixer dataFixer, boolean bl, CallbackInfo ci) {
         try {
             this.worker.close();
         } catch (IOException e) {
@@ -48,9 +50,17 @@ public class MixinChunkStorage implements ChunkDatabaseAccess {
     }
 
     @Overwrite
-    public @Nullable CompoundTag read(ChunkPos chunkPos) {
-        return this.database.getDatabase(WorldDatabaseSpecs.CHUNK_DATA)
+    public boolean isOldChunkAround(ChunkPos chunkPos, int i) {
+        //TODO implement
+        return false;
+    }
+
+    @Overwrite
+    public CompletableFuture<Optional<CompoundTag>> read(ChunkPos chunkPos) {
+        CompoundTag compoundTag = this.database.getDatabase(WorldDatabaseSpecs.CHUNK_DATA)
                 .getValue(chunkPos);
+
+        return CompletableFuture.completedFuture(Optional.ofNullable(compoundTag));
     }
 
     @Overwrite
