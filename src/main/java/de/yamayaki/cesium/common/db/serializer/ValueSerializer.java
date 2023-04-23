@@ -1,10 +1,9 @@
 package de.yamayaki.cesium.common.db.serializer;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 public interface ValueSerializer<T> {
-    ByteBuffer serialize(T value) throws IOException;
+    byte[] serialize(T value) throws IOException;
 
-    T deserialize(ByteBuffer input) throws IOException;
+    T deserialize(byte[] input) throws IOException;
 }

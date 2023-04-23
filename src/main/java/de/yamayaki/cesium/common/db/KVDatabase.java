@@ -1,26 +1,24 @@
 package de.yamayaki.cesium.common.db;
 
 import de.yamayaki.cesium.common.Scannable;
-import de.yamayaki.cesium.common.db.lightning.Csr;
-import de.yamayaki.cesium.common.db.lightning.Dbi;
-import de.yamayaki.cesium.common.db.lightning.Env;
-import de.yamayaki.cesium.common.db.lightning.Txn;
 import de.yamayaki.cesium.common.db.serializer.DefaultSerializers;
 import de.yamayaki.cesium.common.db.serializer.KeySerializer;
 import de.yamayaki.cesium.common.db.serializer.ValueSerializer;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import de.yamayaki.cesium.common.io.compression.StreamCompressor;
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.util.lmdb.LMDB;
+import org.lmdbjava.Cursor;
+import org.lmdbjava.Dbi;
+import org.lmdbjava.DbiFlags;
+import org.lmdbjava.Env;
+import org.lmdbjava.Txn;
 
-import java.nio.ByteBuffer;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class KVDatabase<K, V> {
     private final LMDBInstance storage;
 
-    private final Env env;
-    private final Dbi dbi;
+    private final Env<byte[]> env;
+    private final Dbi<byte[]> dbi;
 
     private final KeySerializer<K> keySerializer;
     private final ValueSerializer<V> valueSerializer;
@@ -31,7 +29,7 @@ public class KVDatabase<K, V> {
         this.storage = storage;
 
         this.env = this.storage.env();
-        this.dbi = this.env.openDbi(spec.getName(), LMDB.MDB_CREATE);
+        this.dbi = this.env.openDbi(spec.getName(), DbiFlags.MDB_CREATE);
 
         this.keySerializer = DefaultSerializers.getKeySerializer(spec.getKeyType());
         this.valueSerializer = DefaultSerializers.getValueSerializer(spec.getValueType());
@@ -43,14 +41,14 @@ public class KVDatabase<K, V> {
         lock.readLock()
                 .lock();
 
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            ByteBuffer buf = this.dbi.get(this.env.txnRead(), this.getKeyBuffer(stack, key));
+        try {
+            byte[] buf = this.dbi.get(this.env.txnRead(), this.keySerializer.serializeKey(key));
 
             if (buf == null) {
                 return null;
             }
 
-            ByteBuffer decompressed;
+            byte[] decompressed;
 
             try {
                 decompressed = this.compressor.decompress(buf);
@@ -80,14 +78,14 @@ public class KVDatabase<K, V> {
         lock.readLock()
                 .lock();
 
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            ByteBuffer buf = this.dbi.get(this.env.txnRead(), this.getKeyBuffer(stack, key));
+        try {
+            byte[] buf = this.dbi.get(this.env.txnRead(), this.keySerializer.serializeKey(key));
 
             if (buf == null) {
                 return;
             }
 
-            ByteBuffer decompressed;
+            byte[] decompressed;
             try {
                 decompressed = this.compressor.decompress(buf);
             } catch (Exception e) {
@@ -103,14 +101,6 @@ public class KVDatabase<K, V> {
             lock.readLock()
                     .unlock();
         }
-    }
-
-    private ByteBuffer getKeyBuffer(MemoryStack stack, K key) {
-        ByteBuffer buf = stack.malloc(this.keySerializer.getKeyLength());
-
-        this.keySerializer.serializeKey(buf, key);
-
-        return buf;
     }
 
     public KeySerializer<K> getKeySerializer() {
@@ -129,20 +119,16 @@ public class KVDatabase<K, V> {
         return this.storage.getLock();
     }
 
-    public void putValue(Txn txn, K key, ByteBuffer value) {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            this.dbi.put(txn, this.getKeyBuffer(stack, key), value, 0);
-        }
+    public void putValue(Txn<byte[]> txn, K key, byte[] value) {
+        this.dbi.put(txn, this.keySerializer.serializeKey(key), value);
     }
 
-    public void delete(Txn txn, K key) {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            this.dbi.delete(txn, this.getKeyBuffer(stack, key));
-        }
+    public void delete(Txn<byte[]> txn, K key) {
+        this.dbi.delete(txn, this.keySerializer.serializeKey(key));
     }
 
-    public Csr getIterator() {
-        return this.dbi.cursor(this.env.txnRead());
+    public Cursor<byte[]> getIterator() {
+        return this.dbi.openCursor(this.env.txnRead());
     }
 
     public void close() {

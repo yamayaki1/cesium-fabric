@@ -1,7 +1,7 @@
 package de.yamayaki.cesium.common.db.spec.impl;
 
-import de.yamayaki.cesium.common.io.compression.DefaultStreamCompressors;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
+import de.yamayaki.cesium.common.io.compression.DefaultStreamCompressors;
 import net.minecraft.nbt.CompoundTag;
 
 import java.util.UUID;

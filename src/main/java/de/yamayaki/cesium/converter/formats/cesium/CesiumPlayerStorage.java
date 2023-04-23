@@ -1,12 +1,12 @@
 package de.yamayaki.cesium.converter.formats.cesium;
 
-import de.yamayaki.cesium.common.db.lightning.Csr;
+import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import de.yamayaki.cesium.common.db.spec.impl.PlayerDatabaseSpecs;
 import de.yamayaki.cesium.converter.IPlayerStorage;
-import de.yamayaki.cesium.common.db.LMDBInstance;
 import net.minecraft.nbt.CompoundTag;
 import org.apache.logging.log4j.Logger;
+import org.lmdbjava.Cursor;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -32,17 +32,20 @@ public class CesiumPlayerStorage implements IPlayerStorage {
     public List<UUID> getAllPlayers() {
         final List<UUID> list = new ArrayList<>();
 
-        final Csr cursor = this.database.getDatabase(PlayerDatabaseSpecs.PLAYER_DATA)
+        final Cursor<byte[]> cursor = this.database.getDatabase(PlayerDatabaseSpecs.PLAYER_DATA)
                 .getIterator();
 
-        while (cursor.hasNext()) {
+        boolean exists = cursor.first();
+        while (exists) {
             final UUID uid = this.database.getDatabase(PlayerDatabaseSpecs.PLAYER_DATA)
-                    .getKeySerializer().deserializeKey(cursor.next());
+                    .getKeySerializer()
+                    .deserializeKey(cursor.val());
+
             list.add(uid);
+            exists = cursor.next();
         }
 
         cursor.close();
-
         return list;
     }
 

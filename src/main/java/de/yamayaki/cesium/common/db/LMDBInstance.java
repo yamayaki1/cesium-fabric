@@ -1,15 +1,16 @@
 package de.yamayaki.cesium.common.db;
 
-import de.yamayaki.cesium.common.db.lightning.Env;
-import de.yamayaki.cesium.common.db.lightning.EnvInfo;
-import de.yamayaki.cesium.common.db.lightning.LmdbException;
-import de.yamayaki.cesium.common.db.lightning.Txn;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.lwjgl.util.lmdb.LMDB;
+import org.lmdbjava.ByteArrayProxy;
+import org.lmdbjava.Env;
+import org.lmdbjava.EnvFlags;
+import org.lmdbjava.EnvInfo;
+import org.lmdbjava.LmdbException;
+import org.lmdbjava.Txn;
 
 import java.io.File;
 import java.util.Arrays;
@@ -18,7 +19,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class LMDBInstance {
     private static final Logger LOGGER = LogManager.getLogger("Cesium");
-    protected final Env env;
+    protected final Env<byte[]> env;
     protected final Reference2ObjectMap<DatabaseSpec<?, ?>, KVDatabase<?, ?>> databases = new Reference2ObjectOpenHashMap<>();
     protected final Reference2ObjectMap<DatabaseSpec<?, ?>, KVTransaction<?, ?>> transactions = new Reference2ObjectOpenHashMap<>();
     protected final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
@@ -31,13 +32,13 @@ public class LMDBInstance {
 
         File file = new File(dir, name + ".db");
 
-        this.env = Env.builder()
-                .setMaxDatabases(databases.length)
-                .open(file, LMDB.MDB_NOLOCK | LMDB.MDB_NOSUBDIR);
+        this.env = Env.create(ByteArrayProxy.PROXY_BA)
+                .setMaxDbs(databases.length)
+                .open(file, EnvFlags.MDB_NOLOCK, EnvFlags.MDB_NOSUBDIR);
 
         this.resizeStep = Arrays.stream(databases).mapToInt(DatabaseSpec::getInitialSize).sum();
 
-        EnvInfo info = this.env.getInfo();
+        EnvInfo info = this.env.info();
         if (info.mapSize < this.resizeStep) {
             this.env.setMapSize(this.resizeStep);
         }
@@ -88,7 +89,7 @@ public class LMDBInstance {
         Iterator<KVTransaction<?, ?>> it = this.transactions.values()
                 .iterator();
 
-        Txn txn = this.env.txnWrite();
+        Txn<byte[]> txn = this.env.txnWrite();
 
         try {
             while (it.hasNext()) {
@@ -96,7 +97,7 @@ public class LMDBInstance {
                     KVTransaction<?, ?> transaction = it.next();
                     transaction.addChanges(txn);
                 } catch (LmdbException e) {
-                    if (e.getCode() == LMDB.MDB_MAP_FULL) {
+                    if (e instanceof Env.MapFullException) {
                         txn.abort();
 
                         this.growMap();
@@ -122,7 +123,7 @@ public class LMDBInstance {
     }
 
     private void growMap() {
-        EnvInfo info = this.env.getInfo();
+        EnvInfo info = this.env.info();
         long newSize = info.mapSize + this.resizeStep;
         LOGGER.info("Growing map size from {} to {} bytes", info.mapSize, newSize);
         this.env.setMapSize(newSize);
@@ -132,7 +133,7 @@ public class LMDBInstance {
         return this.lock;
     }
 
-    Env env() {
+    Env<byte[]> env() {
         return this.env;
     }
 

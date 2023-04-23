@@ -1,9 +1,9 @@
 package de.yamayaki.cesium.mixin.core.chunks;
 
 import com.mojang.datafixers.DataFixer;
-import de.yamayaki.cesium.common.db.spec.impl.WorldDatabaseSpecs;
 import de.yamayaki.cesium.common.ChunkDatabaseAccess;
 import de.yamayaki.cesium.common.db.LMDBInstance;
+import de.yamayaki.cesium.common.db.spec.impl.WorldDatabaseSpecs;
 import net.minecraft.Util;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;

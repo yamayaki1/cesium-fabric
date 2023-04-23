@@ -1,6 +1,7 @@
 plugins {
 	id 'fabric-loom' version '1.1-SNAPSHOT'
 	id 'io.github.juuxel.loom-quiltflower' version '1.8.0'
+	id 'com.github.johnrengelman.shadow' version '8.0.0'
 	id 'maven-publish'
 }
 
@@ -13,41 +14,22 @@ group = project.maven_group
 
 repositories {
 	mavenCentral()
+	maven {
+		url = "https://oss.sonatype.org/content/repositories/snapshots"
+	}
 }
 
 loom {
 	accessWidenerPath = file("src/main/resources/cesium.accesswidener")
 }
 
-configurations {
-	bindings
-	implementation.extendsFrom bindings
-	include.extendsFrom bindings
-
-	natives
-	implementation.extendsFrom natives
-}
-
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings loom.officialMojangMappings()
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-}
 
-addLwjglBindings('lwjgl-zstd')
-addLwjglBindings('lwjgl-lmdb')
-
-def addLwjglBindings(name) {
-	def group = 'org.lwjgl'
-	def version = '3.3.1'
-
-	dependencies {
-		bindings(group: group, name: name, version: version) { transitive = false }
-
-		natives(group: group, name: name, version: version, classifier: 'natives-linux') { transitive = false }
-		natives(group: group, name: name, version: version, classifier: 'natives-macos') { transitive = false }
-		natives(group: group, name: name, version: version, classifier: 'natives-windows') { transitive = false }
-	}
+	shadow(implementation("com.github.luben:zstd-jni:1.5.5-2"))
+	shadow(implementation("org.lmdbjava:lmdbjava:0.9.0-SNAPSHOT"))
 }
 
 processResources {
@@ -67,11 +49,17 @@ java {
 }
 
 jar {
-	from (project.configurations.natives) {
-		into ("natives/cesium")
-	}
-
 	from("LICENSE") {
 		rename { "${it}_${project.archivesBaseName}" }
 	}
+}
+
+remapJar {
+	dependsOn(shadowJar)
+	inputFile = file("build/libs/shadow-tmp.jar")
+}
+
+shadowJar {
+	configurations = [project.configurations.shadow]
+	archiveFileName = "shadow-tmp.jar"
 }

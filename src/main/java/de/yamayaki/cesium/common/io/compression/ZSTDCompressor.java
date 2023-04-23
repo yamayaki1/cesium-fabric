@@ -1,30 +1,30 @@
 package de.yamayaki.cesium.common.io.compression;
 
-import org.lwjgl.util.zstd.Zstd;
+import com.github.luben.zstd.Zstd;
 
-import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class ZSTDCompressor implements StreamCompressor {
     private static long checkError(long rc) {
-        if (Zstd.ZSTD_isError(rc)) {
-            throw new IllegalStateException(Zstd.ZSTD_getErrorName(rc));
+        if (Zstd.isError(rc)) {
+            throw new IllegalStateException(Zstd.getErrorName(rc));
         }
 
         return rc;
     }
 
     @Override
-    public ByteBuffer compress(ByteBuffer src) {
-        ByteBuffer dst = ByteBuffer.allocateDirect((int) Zstd.ZSTD_COMPRESSBOUND(src.remaining()));
-        dst.limit((int) checkError(Zstd.ZSTD_compress(dst, src, 7)));
+    public byte[] compress(byte[] src) {
+        byte[] dst = new byte[(int) Zstd.compressBound(src.length)];
+        int size = (int) checkError(Zstd.compress(dst, src, 7));
 
-        return dst;
+        return Arrays.copyOfRange(dst, 0, size);
     }
 
     @Override
-    public ByteBuffer decompress(ByteBuffer src) {
-        ByteBuffer dst = ByteBuffer.allocateDirect((int) checkError(Zstd.ZSTD_getFrameContentSize(src)));
-        checkError(Zstd.ZSTD_decompress(dst, src));
+    public byte[] decompress(byte[] src) {
+        byte[] dst = new byte[(int) checkError(Zstd.decompressedSize(src))];
+        checkError(Zstd.decompress(dst, src));
 
         return dst;
     }

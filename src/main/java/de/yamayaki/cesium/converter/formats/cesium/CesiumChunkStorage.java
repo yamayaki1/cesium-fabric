@@ -1,14 +1,15 @@
 package de.yamayaki.cesium.converter.formats.cesium;
 
-import de.yamayaki.cesium.common.db.lightning.Csr;
-import de.yamayaki.cesium.common.db.lightning.LmdbException;
+import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import de.yamayaki.cesium.common.db.spec.impl.WorldDatabaseSpecs;
 import de.yamayaki.cesium.converter.IChunkStorage;
-import de.yamayaki.cesium.common.db.LMDBInstance;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;
 import org.apache.logging.log4j.Logger;
+import org.lmdbjava.Cursor;
+import org.lmdbjava.GetOp;
+import org.lmdbjava.LmdbException;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -34,13 +35,18 @@ public class CesiumChunkStorage implements IChunkStorage {
     public List<ChunkPos> getAllChunks() {
         final List<ChunkPos> list = new ArrayList<>();
 
-        final Csr cursor = this.database.getDatabase(WorldDatabaseSpecs.CHUNK_DATA)
+        final Cursor<byte[]> cursor = this.database.getDatabase(WorldDatabaseSpecs.CHUNK_DATA)
                 .getIterator();
 
-        while (cursor.hasNext()) {
+
+        boolean exists = cursor.first();
+        while (exists) {
             final ChunkPos chunkPos = this.database.getDatabase(WorldDatabaseSpecs.CHUNK_DATA)
-                    .getKeySerializer().deserializeKey(cursor.next());
+                    .getKeySerializer()
+                    .deserializeKey(cursor.val());
+
             list.add(chunkPos);
+            exists = cursor.next();
         }
 
         cursor.close();

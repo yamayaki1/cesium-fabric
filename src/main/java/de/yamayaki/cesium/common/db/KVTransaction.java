@@ -1,16 +1,15 @@
 package de.yamayaki.cesium.common.db;
 
-import de.yamayaki.cesium.common.db.lightning.Txn;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
+import org.lmdbjava.Txn;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class KVTransaction<K, V> {
     private final KVDatabase<K, V> storage;
-    private final Object2ReferenceMap<K, ByteBuffer> pending = new Object2ReferenceOpenHashMap<>();
+    private final Object2ReferenceMap<K, byte[]> pending = new Object2ReferenceOpenHashMap<>();
 
     public KVTransaction(KVDatabase<K, V> storage) {
         this.storage = storage;
@@ -27,10 +26,10 @@ public class KVTransaction<K, V> {
                 return;
             }
 
-            ByteBuffer data = this.storage.getValueSerializer()
+            byte[] data = this.storage.getValueSerializer()
                     .serialize(value);
 
-            ByteBuffer compressedData = this.storage.getCompressor()
+            byte[] compressedData = this.storage.getCompressor()
                     .compress(data);
 
             this.pending.put(key, compressedData);
@@ -42,8 +41,8 @@ public class KVTransaction<K, V> {
         }
     }
 
-    void addChanges(Txn txn) {
-        for (Object2ReferenceMap.Entry<K, ByteBuffer> entry : this.pending.object2ReferenceEntrySet()) {
+    void addChanges(Txn<byte[]> txn) {
+        for (Object2ReferenceMap.Entry<K, byte[]> entry : this.pending.object2ReferenceEntrySet()) {
             if (entry.getValue() != null) {
                 this.storage.putValue(txn, entry.getKey(), entry.getValue());
             } else {
