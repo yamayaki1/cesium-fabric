@@ -124,9 +124,12 @@ public class LMDBInstance {
 
     private void growMap() {
         EnvInfo info = this.env.info();
-        long newSize = info.mapSize + this.resizeStep;
-        LOGGER.info("Growing map size from {} to {} bytes", info.mapSize, newSize);
+
+        long oldSize = info.mapSize;
+        long newSize = oldSize + this.resizeStep;
+
         this.env.setMapSize(newSize);
+        LOGGER.info("Grew map size from {} to {} MB", (oldSize/1024/1024), (newSize/1024/1024));
     }
 
     ReentrantReadWriteLock getLock() {

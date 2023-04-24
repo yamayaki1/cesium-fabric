@@ -115,10 +115,6 @@ public class KVDatabase<K, V> {
         return this.compressor;
     }
 
-    public ReentrantReadWriteLock getLock() {
-        return this.storage.getLock();
-    }
-
     public void putValue(Txn<byte[]> txn, K key, byte[] value) {
         this.dbi.put(txn, this.keySerializer.serializeKey(key), value);
     }
