@@ -32,14 +32,14 @@ public class CesiumPlayerStorage implements IPlayerStorage {
     public List<UUID> getAllPlayers() {
         final List<UUID> list = new ArrayList<>();
 
-        final Cursor<byte[]> cursor = this.database.getDatabase(PlayerDatabaseSpecs.PLAYER_DATA)
+        final Cursor<byte[]> cursor = this.database.getDatabase(PlayerDatabaseSpecs.STATISTICS)
                 .getIterator();
 
         boolean exists = cursor.first();
         while (exists) {
-            final UUID uid = this.database.getDatabase(PlayerDatabaseSpecs.PLAYER_DATA)
+            final UUID uid = this.database.getDatabase(PlayerDatabaseSpecs.STATISTICS)
                     .getKeySerializer()
-                    .deserializeKey(cursor.val());
+                    .deserializeKey(cursor.key());
 
             list.add(uid);
             exists = cursor.next();

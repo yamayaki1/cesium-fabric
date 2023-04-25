@@ -44,6 +44,10 @@ public class AnvilPlayerStorage implements IPlayerStorage {
 
     @Override
     public void setPlayerNBT(final UUID uuid, final CompoundTag compoundTag) {
+        if (compoundTag == null) {
+            return;
+        }
+
         try {
             final File saveFile = new File(this.playerData.toFile(), uuid.toString() + ".dat");
             if (!saveFile.exists() && !saveFile.getParentFile().mkdirs() && !saveFile.createNewFile()) {

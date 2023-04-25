@@ -8,7 +8,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;
 import org.apache.logging.log4j.Logger;
 import org.lmdbjava.Cursor;
-import org.lmdbjava.GetOp;
 import org.lmdbjava.LmdbException;
 
 import java.nio.file.Path;
@@ -43,7 +42,7 @@ public class CesiumChunkStorage implements IChunkStorage {
         while (exists) {
             final ChunkPos chunkPos = this.database.getDatabase(WorldDatabaseSpecs.CHUNK_DATA)
                     .getKeySerializer()
-                    .deserializeKey(cursor.val());
+                    .deserializeKey(cursor.key());
 
             list.add(chunkPos);
             exists = cursor.next();

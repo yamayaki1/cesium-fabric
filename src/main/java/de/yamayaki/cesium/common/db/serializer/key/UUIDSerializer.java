@@ -18,6 +18,6 @@ public class UUIDSerializer implements KeySerializer<UUID> {
     @Override
     public UUID deserializeKey(byte[] array) {
         ByteBuffer buf = BufferUtils.ofArray(array);
-        return new UUID(buf.getLong(0), buf.getLong(8));
+        return new UUID(buf.getLong(8), buf.getLong(0));
     }
 }
