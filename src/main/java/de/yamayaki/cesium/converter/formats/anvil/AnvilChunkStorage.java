@@ -1,11 +1,11 @@
 package de.yamayaki.cesium.converter.formats.anvil;
 
 import com.google.common.collect.ImmutableList;
+import de.yamayaki.cesium.CesiumMod;
 import de.yamayaki.cesium.converter.IChunkStorage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.storage.IOWorker;
-import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,15 +18,13 @@ import java.util.regex.Pattern;
 public class AnvilChunkStorage implements IChunkStorage {
     private static final Pattern REGEX = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
 
-    private final Logger logger;
     private final Path basePath;
 
     private final IOWorker chunkData;
     private final IOWorker poiData;
     private final IOWorker entityData;
 
-    public AnvilChunkStorage(final Logger logger, final Path basePath) {
-        this.logger = logger;
+    public AnvilChunkStorage(final Path basePath) {
         this.basePath = basePath;
 
         this.chunkData = new IOWorker(basePath.resolve("region"), true, "Anvil-Chunks");
@@ -78,7 +76,7 @@ public class AnvilChunkStorage implements IChunkStorage {
             this.poiData.close();
             this.entityData.close();
         } catch (IOException exception) {
-            this.logger.warn("[ANVIL] Failed to close chunk storage", exception);
+            CesiumMod.logger().warn("[ANVIL] Failed to close chunk storage", exception);
         }
     }
 

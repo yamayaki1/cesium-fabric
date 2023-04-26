@@ -6,15 +6,11 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.StreamTagVisitor;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 public class CompoundTagSerializer implements ValueSerializer<CompoundTag>, Scannable<StreamTagVisitor> {
     @Override
-    public byte[] serialize(CompoundTag value) throws IOException {
+    public byte[] serialize(CompoundTag value) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream(2048);
 
         try (DataOutputStream out = new DataOutputStream(bytes)) {

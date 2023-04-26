@@ -1,5 +1,6 @@
 package de.yamayaki.cesium.converter.gui;
 
+import de.yamayaki.cesium.CesiumMod;
 import de.yamayaki.cesium.converter.ConvHelper;
 import de.yamayaki.cesium.converter.IChunkStorage;
 import de.yamayaki.cesium.converter.IPlayerStorage;
@@ -16,15 +17,12 @@ import net.minecraft.server.WorldStem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.storage.LevelStorageSource;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.lmdbjava.LmdbException;
 
 import java.nio.file.Path;
 
 public class CesiumToAnvil {
-    private final Logger logger = LogManager.getLogger("Cesium");
-
+    @SuppressWarnings("CodeBlock2Expr")
     public static void convertWorld(final Minecraft minecraft, final LevelStorageSource.LevelStorageAccess levelAccess) {
         final CesiumToAnvil converter = new CesiumToAnvil();
 
@@ -43,7 +41,7 @@ public class CesiumToAnvil {
             });
         } catch (Exception exception) {
             if (exception instanceof LmdbException lmdbException) {
-                converter.logger.error("Something strange happenend while accessing the database", lmdbException);
+                CesiumMod.logger().error("Something strange happenend while accessing the database", lmdbException);
                 return;
             }
 
@@ -52,10 +50,10 @@ public class CesiumToAnvil {
     }
 
     private void importPlayerData(final Path basePath) {
-        final IPlayerStorage originalStorage = new CesiumPlayerStorage(this.logger, basePath);
-        final IPlayerStorage newStorage = new AnvilPlayerStorage(this.logger, basePath);
+        final IPlayerStorage originalStorage = new CesiumPlayerStorage(basePath);
+        final IPlayerStorage newStorage = new AnvilPlayerStorage(basePath);
 
-        ConvHelper.transferPlayerData(this.logger, originalStorage, newStorage);
+        ConvHelper.transferPlayerData(originalStorage, newStorage);
 
         originalStorage.close();
         newStorage.close();
@@ -64,11 +62,11 @@ public class CesiumToAnvil {
     private void importLevel(final LevelStorageSource.LevelStorageAccess levelAccess, final ResourceKey<Level> level) {
         final Path dimensionPath = levelAccess.getDimensionPath(level);
 
-        final IChunkStorage originalStorage = new CesiumChunkStorage(this.logger, dimensionPath);
-        final IChunkStorage newStorage = new AnvilChunkStorage(this.logger, dimensionPath);
+        final IChunkStorage originalStorage = new CesiumChunkStorage(dimensionPath);
+        final IChunkStorage newStorage = new AnvilChunkStorage(dimensionPath);
 
-        logger.info("Transfering chunks for dimension {}", dimensionPath.toString());
-        ConvHelper.transferChunkData(this.logger, originalStorage, newStorage);
+        CesiumMod.logger().info("Transfering chunks for dimension {}", dimensionPath.toString());
+        ConvHelper.transferChunkData(originalStorage, newStorage);
 
         originalStorage.close();
         newStorage.close();

@@ -1,12 +1,12 @@
 package de.yamayaki.cesium.converter.formats.cesium;
 
+import de.yamayaki.cesium.CesiumMod;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import de.yamayaki.cesium.common.db.spec.impl.WorldDatabaseSpecs;
 import de.yamayaki.cesium.converter.IChunkStorage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;
-import org.apache.logging.log4j.Logger;
 import org.lmdbjava.Cursor;
 import org.lmdbjava.LmdbException;
 
@@ -15,13 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CesiumChunkStorage implements IChunkStorage {
-    private final Logger logger;
-
     private final LMDBInstance database;
 
-    public CesiumChunkStorage(final Logger logger, final Path basePath) {
-        this.logger = logger;
-
+    public CesiumChunkStorage(final Path basePath) {
         this.database = new LMDBInstance(basePath.toFile(), "chunks", new DatabaseSpec[]{
                 WorldDatabaseSpecs.CHUNK_DATA,
                 WorldDatabaseSpecs.POI,
@@ -57,7 +53,7 @@ public class CesiumChunkStorage implements IChunkStorage {
         try {
             this.database.flushChanges();
         } catch (LmdbException lmdbException) {
-            this.logger.info(lmdbException);
+            CesiumMod.logger().info(lmdbException);
         }
     }
 

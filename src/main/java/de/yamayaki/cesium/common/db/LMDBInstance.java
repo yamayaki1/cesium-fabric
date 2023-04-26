@@ -1,16 +1,10 @@
 package de.yamayaki.cesium.common.db;
 
+import de.yamayaki.cesium.CesiumMod;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.lmdbjava.ByteArrayProxy;
-import org.lmdbjava.Env;
-import org.lmdbjava.EnvFlags;
-import org.lmdbjava.EnvInfo;
-import org.lmdbjava.LmdbException;
-import org.lmdbjava.Txn;
+import org.lmdbjava.*;
 
 import java.io.File;
 import java.util.Arrays;
@@ -18,7 +12,6 @@ import java.util.Iterator;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class LMDBInstance {
-    private static final Logger LOGGER = LogManager.getLogger("Cesium");
     protected final Env<byte[]> env;
     protected final Reference2ObjectMap<DatabaseSpec<?, ?>, KVDatabase<?, ?>> databases = new Reference2ObjectOpenHashMap<>();
     protected final Reference2ObjectMap<DatabaseSpec<?, ?>, KVTransaction<?, ?>> transactions = new Reference2ObjectOpenHashMap<>();
@@ -129,7 +122,7 @@ public class LMDBInstance {
         long newSize = oldSize + this.resizeStep;
 
         this.env.setMapSize(newSize);
-        LOGGER.info("Grew map size from {} to {} MB", (oldSize / 1024 / 1024), (newSize / 1024 / 1024));
+        CesiumMod.logger().info("Grew map size from {} to {} MB", (oldSize / 1024 / 1024), (newSize / 1024 / 1024));
     }
 
     ReentrantReadWriteLock getLock() {

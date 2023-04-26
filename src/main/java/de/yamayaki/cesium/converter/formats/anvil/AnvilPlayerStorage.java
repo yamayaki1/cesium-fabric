@@ -1,10 +1,10 @@
 package de.yamayaki.cesium.converter.formats.anvil;
 
+import de.yamayaki.cesium.CesiumMod;
 import de.yamayaki.cesium.converter.ConvHelper;
 import de.yamayaki.cesium.converter.IPlayerStorage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
-import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,15 +13,11 @@ import java.util.List;
 import java.util.UUID;
 
 public class AnvilPlayerStorage implements IPlayerStorage {
-    private final Logger logger;
-
     private final Path playerData;
     private final Path statsStorage;
     private final Path advancementsStorage;
 
-    public AnvilPlayerStorage(final Logger logger, final Path basePath) {
-        this.logger = logger;
-
+    public AnvilPlayerStorage(final Path basePath) {
         this.playerData = basePath.resolve("playerdata");
         this.statsStorage = basePath.resolve("stats");
         this.advancementsStorage = basePath.resolve("advancements");
@@ -56,7 +52,7 @@ public class AnvilPlayerStorage implements IPlayerStorage {
 
             NbtIo.writeCompressed(compoundTag, saveFile);
         } catch (IOException exception) {
-            this.logger.warn("[ANVIL] Failed to save player data for {}", uuid);
+            CesiumMod.logger().warn("[ANVIL] Failed to save player data for {}", uuid);
         }
     }
 
@@ -70,7 +66,7 @@ public class AnvilPlayerStorage implements IPlayerStorage {
                 compoundTag = NbtIo.readCompressed(saveFile);
             }
         } catch (IOException exception) {
-            this.logger.warn("[ANVIL] Failed to load player data for {}", uuid);
+            CesiumMod.logger().warn("[ANVIL] Failed to load player data for {}", uuid);
         }
 
         return compoundTag;
@@ -82,7 +78,7 @@ public class AnvilPlayerStorage implements IPlayerStorage {
             final Path savePath = this.advancementsStorage.resolve(uuid.toString() + ".json");
             ConvHelper.saveToFile(savePath, advancements);
         } catch (IOException exception) {
-            this.logger.warn("[ANVIL] Failed to load advancements for {}", uuid);
+            CesiumMod.logger().warn("[ANVIL] Failed to load advancements for {}", uuid);
         }
     }
 
@@ -93,7 +89,7 @@ public class AnvilPlayerStorage implements IPlayerStorage {
             final Path savePath = this.advancementsStorage.resolve(uuid.toString() + ".json");
             advancements = ConvHelper.getContents(savePath);
         } catch (IOException exception) {
-            this.logger.warn("[ANVIL] Failed to load advancements for {}", uuid);
+            CesiumMod.logger().warn("[ANVIL] Failed to load advancements for {}", uuid);
         }
 
         return advancements;
@@ -105,7 +101,7 @@ public class AnvilPlayerStorage implements IPlayerStorage {
             final Path savePath = this.statsStorage.resolve(uuid.toString() + ".json");
             ConvHelper.saveToFile(savePath, statistics);
         } catch (IOException exception) {
-            this.logger.warn("[ANVIL] Failed to load advancements for {}", uuid);
+            CesiumMod.logger().warn("[ANVIL] Failed to load advancements for {}", uuid);
         }
     }
 
@@ -116,7 +112,7 @@ public class AnvilPlayerStorage implements IPlayerStorage {
             final Path savePath = this.statsStorage.resolve(uuid.toString() + ".json");
             statistics = ConvHelper.getContents(savePath);
         } catch (IOException exception) {
-            this.logger.warn("[ANVIL] Failed to load advancements for {}", uuid);
+            CesiumMod.logger().warn("[ANVIL] Failed to load advancements for {}", uuid);
         }
 
         return statistics;

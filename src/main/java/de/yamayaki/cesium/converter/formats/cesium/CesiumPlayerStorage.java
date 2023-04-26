@@ -5,7 +5,6 @@ import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import de.yamayaki.cesium.common.db.spec.impl.PlayerDatabaseSpecs;
 import de.yamayaki.cesium.converter.IPlayerStorage;
 import net.minecraft.nbt.CompoundTag;
-import org.apache.logging.log4j.Logger;
 import org.lmdbjava.Cursor;
 
 import java.nio.file.Path;
@@ -14,13 +13,9 @@ import java.util.List;
 import java.util.UUID;
 
 public class CesiumPlayerStorage implements IPlayerStorage {
-    private final Logger logger;
-
     private final LMDBInstance database;
 
-    public CesiumPlayerStorage(final Logger logger, final Path basePath) {
-        this.logger = logger;
-
+    public CesiumPlayerStorage(final Path basePath) {
         this.database = new LMDBInstance(basePath.toFile(), "players", new DatabaseSpec[]{
                 PlayerDatabaseSpecs.PLAYER_DATA,
                 PlayerDatabaseSpecs.ADVANCEMENTS,

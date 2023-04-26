@@ -6,11 +6,7 @@ import de.yamayaki.cesium.common.db.serializer.KeySerializer;
 import de.yamayaki.cesium.common.db.serializer.ValueSerializer;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import de.yamayaki.cesium.common.io.compression.StreamCompressor;
-import org.lmdbjava.Cursor;
-import org.lmdbjava.Dbi;
-import org.lmdbjava.DbiFlags;
-import org.lmdbjava.Env;
-import org.lmdbjava.Txn;
+import org.lmdbjava.*;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -70,7 +66,7 @@ public class KVDatabase<K, V> {
     //idea by https://github.com/mo0dss/radon-fabric
     @SuppressWarnings("unchecked")
     public <T> void scan(K key, T scanner) {
-        if (!(this.keySerializer instanceof Scannable<?>)) {
+        if (!(this.valueSerializer instanceof Scannable<?>)) {
             return;
         }
 

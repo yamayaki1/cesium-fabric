@@ -2,9 +2,9 @@ package de.yamayaki.cesium.converter;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
+import de.yamayaki.cesium.CesiumMod;
 import net.minecraft.world.level.ChunkPos;
 import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,9 +31,9 @@ public class ConvHelper {
         FileUtils.writeStringToFile(path.toFile(), string, StandardCharsets.UTF_8);
     }
 
-    public static void transferPlayerData(final Logger logger, final IPlayerStorage originalStorage, final IPlayerStorage newStorage) {
+    public static void transferPlayerData(final IPlayerStorage originalStorage, final IPlayerStorage newStorage) {
         for (UUID player : originalStorage.getAllPlayers()) {
-            logger.info("Transfering player {}", player);
+            CesiumMod.logger().info("Transfering player {}", player);
 
             newStorage.setPlayerNBT(player, originalStorage.getPlayerNBT(player));
             newStorage.setPlayerAdvancements(player, originalStorage.getPlayerAdvancements(player));
@@ -41,9 +41,9 @@ public class ConvHelper {
         }
     }
 
-    public static void transferChunkData(final Logger logger, final IChunkStorage originalStorage, final IChunkStorage newStorage) {
+    public static void transferChunkData(final IChunkStorage originalStorage, final IChunkStorage newStorage) {
         final List<ChunkPos> chunkList = originalStorage.getAllChunks();
-        logger.info("Transfering {} chunks", chunkList.size());
+        CesiumMod.logger().info("Transfering {} chunks", chunkList.size());
 
         for (int i = 0; i < chunkList.size(); i++) {
             final ChunkPos chunkPos = chunkList.get(i);
@@ -53,7 +53,7 @@ public class ConvHelper {
             newStorage.setEntityData(chunkPos, originalStorage.getEntityData(chunkPos));
 
             if (i % 10240 == 0) {
-                logger.info("Transferred chunk {}, flushing data", i);
+                CesiumMod.logger().info("Transferred chunk {}, flushing data", i);
                 newStorage.flush();
             }
         }
