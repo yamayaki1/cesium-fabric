@@ -2,6 +2,7 @@ package de.yamayaki.cesium.mixin.core.chunks;
 
 import com.mojang.datafixers.DataFixer;
 import de.yamayaki.cesium.CesiumMod;
+import de.yamayaki.cesium.common.CesiumActions;
 import de.yamayaki.cesium.common.ChunkDatabaseAccess;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.impl.WorldDatabaseSpecs;
@@ -20,11 +21,7 @@ import net.minecraft.world.level.chunk.storage.IOWorker;
 import net.minecraft.world.level.levelgen.structure.LegacyStructureDataHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -37,7 +34,7 @@ import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings("OverwriteAuthorRequired")
 @Mixin(ChunkStorage.class)
-public class MixinChunkStorage implements ChunkDatabaseAccess, ChunkScanAccess {
+public class MixinChunkStorage implements ChunkDatabaseAccess, ChunkScanAccess, CesiumActions {
     private final Long2ObjectLinkedOpenHashMap<CompletableFuture<BitSet>> regionCacheForBlender = new Long2ObjectLinkedOpenHashMap<>();
 
     @Mutable
@@ -186,5 +183,15 @@ public class MixinChunkStorage implements ChunkDatabaseAccess, ChunkScanAccess {
 
     private boolean isOldChunk(CompoundTag compoundTag) {
         return !compoundTag.contains("DataVersion", 99) || compoundTag.getInt("DataVersion") < 3441 || compoundTag.contains("blending_data", 10);
+    }
+
+    @Override
+    public void cesiumFlush() {
+        this.database.flushChanges();
+    }
+
+    @Override
+    public void cesiumClose() {
+        this.database.close();
     }
 }

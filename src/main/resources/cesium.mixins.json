@@ -9,6 +9,7 @@
     "core.chunks.MixinEntityStorage",
     "core.chunks.MixinSectionStorage",
     "core.chunks.MixinServerLevel",
+    "core.upgrader.MixinWorldUpgrader",
     "core.players.MixinMinecraftServer",
     "core.players.MixinPlayerAdvancements",
     "core.players.MixinPlayerDataStorage",
