@@ -1,7 +1,7 @@
 package de.yamayaki.cesium.mixin.converter;
 
-import de.yamayaki.cesium.converter.gui.AnvilToCesium;
-import de.yamayaki.cesium.converter.gui.CesiumToAnvil;
+import de.yamayaki.cesium.converter.WorldConverter;
+import de.yamayaki.cesium.converter.gui.ConvertWorldScreen;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -33,13 +33,11 @@ public abstract class MixinEditWorldScreen extends Screen {
     @Inject(method = "init", at = @At("RETURN"))
     public void reInit(CallbackInfo ci) {
         this.addRenderableWidget(Button.builder(Component.literal("Anvil → Cesium"), buttonx -> {
-            AnvilToCesium.convertWorld(this.minecraft, this.levelAccess);
-            this.callback.accept(false);
+            this.minecraft.setScreen(new ConvertWorldScreen(WorldConverter.Format.TO_CESIUM, this.minecraft, this.levelAccess, this.callback));
         }).bounds(this.width / 2 - 100, this.height / 4 + 168 + 5, 98, 20).build());
 
         this.addRenderableWidget(Button.builder(Component.translatable("Cesium → Anvil"), buttonx -> {
-            CesiumToAnvil.convertWorld(this.minecraft, this.levelAccess);
-            this.callback.accept(false);
+            this.minecraft.setScreen(new ConvertWorldScreen(WorldConverter.Format.TO_ANVIL, this.minecraft, this.levelAccess, this.callback));
         }).bounds(this.width / 2 + 2, this.height / 4 + 168 + 5, 98, 20).build());
     }
 }

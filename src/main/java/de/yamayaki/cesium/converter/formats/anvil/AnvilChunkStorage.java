@@ -27,9 +27,9 @@ public class AnvilChunkStorage implements IChunkStorage {
     public AnvilChunkStorage(final Path basePath) {
         this.basePath = basePath;
 
-        this.chunkData = new IOWorker(basePath.resolve("region"), true, "Anvil-Chunks");
-        this.poiData = new IOWorker(basePath.resolve("poi"), true, "Anvil-POI");
-        this.entityData = new IOWorker(basePath.resolve("entities"), true, "Anvil-Entities");
+        this.chunkData = new IOWorker(basePath.resolve("region"), false, "Anvil-Chunks");
+        this.poiData = new IOWorker(basePath.resolve("poi"), false, "Anvil-POI");
+        this.entityData = new IOWorker(basePath.resolve("entities"), false, "Anvil-Entities");
     }
 
     @Override
