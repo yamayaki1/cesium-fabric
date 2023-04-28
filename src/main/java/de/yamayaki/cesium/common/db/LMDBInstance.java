@@ -4,7 +4,12 @@ import de.yamayaki.cesium.CesiumMod;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-import org.lmdbjava.*;
+import org.lmdbjava.ByteArrayProxy;
+import org.lmdbjava.Env;
+import org.lmdbjava.EnvFlags;
+import org.lmdbjava.EnvInfo;
+import org.lmdbjava.LmdbException;
+import org.lmdbjava.Txn;
 
 import java.io.File;
 import java.util.Arrays;
@@ -13,10 +18,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class LMDBInstance {
     protected final Env<byte[]> env;
+
     protected final Reference2ObjectMap<DatabaseSpec<?, ?>, KVDatabase<?, ?>> databases = new Reference2ObjectOpenHashMap<>();
     protected final Reference2ObjectMap<DatabaseSpec<?, ?>, KVTransaction<?, ?>> transactions = new Reference2ObjectOpenHashMap<>();
+
     protected final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-    private final int resizeStep;
+    protected final int maxCommitTries = 3;
+    protected final int resizeStep;
 
     public LMDBInstance(File dir, String name, DatabaseSpec<?, ?>[] databases) {
         if (!dir.isDirectory() && !dir.mkdirs()) {
@@ -79,37 +87,58 @@ public class LMDBInstance {
     }
 
     private void commitTransaction() {
-        Iterator<KVTransaction<?, ?>> it = this.transactions.values()
-                .iterator();
+        boolean success = false;
+        int tries = 0;
 
-        Txn<byte[]> txn = this.env.txnWrite();
+        while (!success && tries < maxCommitTries) {
+            tries++;
 
-        try {
-            while (it.hasNext()) {
-                try {
-                    KVTransaction<?, ?> transaction = it.next();
-                    transaction.addChanges(txn);
-                } catch (LmdbException e) {
-                    if (e instanceof Env.MapFullException) {
-                        txn.abort();
+            Iterator<KVTransaction<?, ?>> it = this.transactions.values()
+                    .iterator();
 
-                        this.growMap();
+            Txn<byte[]> txn = this.env.txnWrite();
 
-                        txn = this.env.txnWrite();
-                        it = this.transactions.values()
-                                .iterator();
-                    } else {
-                        throw e;
+            try {
+                while (it.hasNext()) {
+                    try {
+                        KVTransaction<?, ?> transaction = it.next();
+                        transaction.addChanges(txn);
+                    } catch (LmdbException e) {
+                        if (e instanceof Env.MapFullException) {
+                            txn.abort();
+
+                            this.growMap();
+
+                            txn = this.env.txnWrite();
+                            it = this.transactions.values()
+                                    .iterator();
+                        } else {
+                            throw e;
+                        }
                     }
                 }
-            }
-        } catch (Throwable t) {
-            txn.abort();
+            } catch (Throwable t) {
+                txn.abort();
 
-            throw t;
+                throw t;
+            }
+
+            try {
+                txn.commit();
+                success = true;
+            } catch (LmdbException e) {
+                if (e instanceof Env.MapFullException) {
+                    CesiumMod.logger().info("Commit of transaction failed; trying again ({}/{})", tries, this.maxCommitTries);
+                    this.growMap();
+                } else {
+                    throw e;
+                }
+            }
         }
 
-        txn.commit();
+        if (!success) {
+            throw new RuntimeException("Commit failed " + this.maxCommitTries + " times.");
+        }
 
         this.transactions.values()
                 .forEach(KVTransaction::clear);
