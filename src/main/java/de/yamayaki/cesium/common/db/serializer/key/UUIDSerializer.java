@@ -9,7 +9,7 @@ import java.util.UUID;
 public class UUIDSerializer implements KeySerializer<UUID> {
     @Override
     public byte[] serializeKey(UUID value) {
-        ByteBuffer buf = ByteBuffer.allocateDirect(16);
+        ByteBuffer buf = BufferUtils.getBuffer(16);
         buf.putLong(0, value.getLeastSignificantBits());
         buf.putLong(8, value.getMostSignificantBits());
         return BufferUtils.toArray(buf);

@@ -7,7 +7,6 @@ import de.yamayaki.cesium.common.ChunkDatabaseAccess;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.impl.WorldDatabaseSpecs;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
-import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.StreamTagVisitor;
@@ -21,7 +20,11 @@ import net.minecraft.world.level.chunk.storage.IOWorker;
 import net.minecraft.world.level.levelgen.structure.LegacyStructureDataHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
+import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -65,7 +68,7 @@ public class MixinChunkStorage implements ChunkDatabaseAccess, ChunkScanAccess, 
         return CompletableFuture.runAsync(() -> {
             this.database.getDatabase(WorldDatabaseSpecs.CHUNK_DATA)
                     .scan(chunkPos, streamTagVisitor);
-        }, Util.backgroundExecutor());
+        }, CesiumMod.getPool());
     }
 
     @Overwrite
@@ -80,7 +83,7 @@ public class MixinChunkStorage implements ChunkDatabaseAccess, ChunkScanAccess, 
                     .getValue(chunkPos);
 
             return Optional.ofNullable(compoundTag);
-        }, Util.backgroundExecutor());
+        }, CesiumMod.getPool());
     }
 
     @Overwrite
@@ -178,7 +181,7 @@ public class MixinChunkStorage implements ChunkDatabaseAccess, ChunkScanAccess, 
                 }
             });
             return bitSet;
-        }, Util.backgroundExecutor());
+        }, CesiumMod.getPool());
     }
 
     private boolean isOldChunk(CompoundTag compoundTag) {

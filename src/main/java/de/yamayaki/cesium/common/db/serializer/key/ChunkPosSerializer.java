@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 public class ChunkPosSerializer implements KeySerializer<ChunkPos> {
     @Override
     public byte[] serializeKey(ChunkPos value) {
-        ByteBuffer buf = ByteBuffer.allocateDirect(8);
+        ByteBuffer buf = BufferUtils.getBuffer(8);
         buf.putInt(0, value.x);
         buf.putInt(4, value.z);
         return BufferUtils.toArray(buf);

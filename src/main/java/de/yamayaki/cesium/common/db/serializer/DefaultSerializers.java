@@ -1,13 +1,11 @@
 package de.yamayaki.cesium.common.db.serializer;
 
 import de.yamayaki.cesium.common.db.serializer.key.ChunkPosSerializer;
-import de.yamayaki.cesium.common.db.serializer.key.ChunkSectionPosSerializer;
 import de.yamayaki.cesium.common.db.serializer.key.UUIDSerializer;
 import de.yamayaki.cesium.common.db.serializer.val.CompoundTagSerializer;
 import de.yamayaki.cesium.common.db.serializer.val.StringSerializer;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;
 
@@ -19,7 +17,6 @@ public class DefaultSerializers {
 
     static {
         keySerializers.put(UUID.class, new UUIDSerializer());
-        keySerializers.put(SectionPos.class, new ChunkSectionPosSerializer());
         keySerializers.put(ChunkPos.class, new ChunkPosSerializer());
 
         valueSerializers.put(CompoundTag.class, new CompoundTagSerializer());

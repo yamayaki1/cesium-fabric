@@ -1,10 +1,10 @@
 package de.yamayaki.cesium.mixin.core.chunks;
 
 import com.mojang.datafixers.DataFixer;
+import de.yamayaki.cesium.CesiumMod;
 import de.yamayaki.cesium.common.ChunkDatabaseAccess;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.impl.WorldDatabaseSpecs;
-import net.minecraft.Util;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.datafix.DataFixTypes;
@@ -60,7 +60,7 @@ public class MixinSectionStorage<R> implements ChunkDatabaseAccess {
                     .getValue(pos);
 
             return Optional.ofNullable(compoundTag);
-        }, Util.backgroundExecutor());
+        }, CesiumMod.getPool());
     }
 
     @Redirect(method = "writeColumn(Lnet/minecraft/world/level/ChunkPos;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/IOWorker;store(Lnet/minecraft/world/level/ChunkPos;Lnet/minecraft/nbt/CompoundTag;)Ljava/util/concurrent/CompletableFuture;"))
@@ -71,7 +71,7 @@ public class MixinSectionStorage<R> implements ChunkDatabaseAccess {
                     .add(pos, nbt);
 
             return null;
-        }, Util.backgroundExecutor());
+        }, CesiumMod.getPool());
     }
 
     @Redirect(method = "close", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/IOWorker;close()V"))

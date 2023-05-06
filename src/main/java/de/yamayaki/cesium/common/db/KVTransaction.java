@@ -18,22 +18,21 @@ public class KVTransaction<K, V> {
     }
 
     public void add(K key, V value) {
-        this.lock.writeLock()
-                .lock();
-
         try {
-            if (value == null) {
-                this.pending.put(key, null);
-                return;
+            byte[] data = null;
+
+            if(value != null) {
+                byte[] serialized = this.storage.getValueSerializer()
+                        .serialize(value);
+
+                data = this.storage.getCompressor()
+                        .compress(serialized);
             }
 
-            byte[] data = this.storage.getValueSerializer()
-                    .serialize(value);
+            this.lock.writeLock()
+                    .lock();
 
-            byte[] compressedData = this.storage.getCompressor()
-                    .compress(data);
-
-            this.pending.put(key, compressedData);
+            this.pending.put(key, data);
         } catch (IOException e) {
             throw new RuntimeException("Couldn't serialize value", e);
         } finally {
