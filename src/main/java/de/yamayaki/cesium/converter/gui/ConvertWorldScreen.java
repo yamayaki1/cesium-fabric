@@ -1,9 +1,9 @@
 package de.yamayaki.cesium.converter.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import de.yamayaki.cesium.converter.WorldConverter;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
@@ -48,8 +48,8 @@ public class ConvertWorldScreen extends Screen {
     }
 
     @Override
-    public void render(PoseStack poseStack, int i, int j, float f) {
-        this.renderBackground(poseStack);
+    public void render(GuiGraphics guiGraphics, int i, int j, float f) {
+        this.renderBackground(guiGraphics);
 
         final int textColor = 16777215;
         final int textOffset = 14;
@@ -58,7 +58,7 @@ public class ConvertWorldScreen extends Screen {
         final int startX = offsetX - 150;
         final int endX = offsetX + 150;
 
-        drawCenteredString(poseStack, this.font, this.title, offsetX, 20, textColor);
+        guiGraphics.drawCenteredString(this.font, this.title, offsetX, 20, textColor);
 
         final Component[] drawables = new Component[]{
                 Component.literal("Total dimensions: " + this.converter.getDimensions()),
@@ -69,18 +69,18 @@ public class ConvertWorldScreen extends Screen {
         };
 
         for (int index = 0; index < drawables.length; index++) {
-            drawString(poseStack, this.font, drawables[index], startX, 40 + ((index + 1) * textOffset), textColor);
+            guiGraphics.drawString(this.font, drawables[index], startX, 40 + ((index + 1) * textOffset), textColor);
         }
 
         final int statusOffset = 40 + ((drawables.length + 2) * textOffset);
-        drawCenteredString(poseStack, this.font, this.converter.getStatus(), offsetX, statusOffset, textColor);
+        guiGraphics.drawCenteredString(this.font, this.converter.getStatus(), offsetX, statusOffset, textColor);
 
         final int progressOffset = statusOffset + textOffset;
         final int barEnd = (int) Math.floor(this.converter.getPercentage() * (endX - startX));
 
-        fill(poseStack, startX - 1, progressOffset - 1, endX + 1, progressOffset + textOffset + 1, -16777216);
-        fill(poseStack, startX, progressOffset, startX + barEnd, progressOffset + textOffset, -13408734);
+        guiGraphics.fill(startX - 1, progressOffset - 1, endX + 1, progressOffset + textOffset + 1, -16777216);
+        guiGraphics.fill(startX, progressOffset, startX + barEnd, progressOffset + textOffset, -13408734);
 
-        super.render(poseStack, i, j, f);
+        super.render(guiGraphics, i, j, f);
     }
 }

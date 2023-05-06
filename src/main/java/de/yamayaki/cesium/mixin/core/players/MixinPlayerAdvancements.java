@@ -171,6 +171,6 @@ public abstract class MixinPlayerAdvancements implements DatabaseItem {
     public void setStorage(LMDBInstance storage) {
         this.database = storage;
 
-        this.load(this.player.getLevel().getServer().getAdvancements());
+        this.load(this.player.level().getServer().getAdvancements());
     }
 }
