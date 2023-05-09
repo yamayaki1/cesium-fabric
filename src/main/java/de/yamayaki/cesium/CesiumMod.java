@@ -1,6 +1,7 @@
 package de.yamayaki.cesium;
 
 import net.fabricmc.api.ModInitializer;
+import net.minecraft.util.Mth;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +32,7 @@ public class CesiumMod implements ModInitializer {
             threadPool = null;
         }
 
-        final int threadCount = Math.max(Runtime.getRuntime().availableProcessors() / 2, 4);
+        final int threadCount = Mth.clamp(Runtime.getRuntime().availableProcessors() / 6, 1, 4);
         threadPool = Executors.newFixedThreadPool(threadCount, new ThreadFactory() {
             final AtomicInteger atomicInteger = new AtomicInteger(1);
 
@@ -40,6 +41,8 @@ public class CesiumMod implements ModInitializer {
                 return new Thread(runnable, "Cesium#" + atomicInteger.getAndIncrement());
             }
         });
+
+        LOGGER.info("Started {} threads.", threadCount);
     }
 
     public static ExecutorService getPool() {

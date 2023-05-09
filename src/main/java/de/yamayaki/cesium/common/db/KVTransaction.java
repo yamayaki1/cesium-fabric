@@ -21,7 +21,7 @@ public class KVTransaction<K, V> {
         try {
             byte[] data = null;
 
-            if(value != null) {
+            if (value != null) {
                 byte[] serialized = this.storage.getValueSerializer()
                         .serialize(value);
 
