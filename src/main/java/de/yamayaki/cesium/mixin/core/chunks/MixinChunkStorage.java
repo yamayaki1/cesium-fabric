@@ -7,6 +7,7 @@ import de.yamayaki.cesium.common.ChunkDatabaseAccess;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.impl.WorldDatabaseSpecs;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
+import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.StreamTagVisitor;
@@ -181,7 +182,7 @@ public class MixinChunkStorage implements ChunkDatabaseAccess, ChunkScanAccess, 
                 }
             });
             return bitSet;
-        }, CesiumMod.getPool());
+        }, Util.backgroundExecutor());
     }
 
     private boolean isOldChunk(CompoundTag compoundTag) {
