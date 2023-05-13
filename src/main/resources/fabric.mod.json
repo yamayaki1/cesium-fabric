@@ -28,6 +28,6 @@
     "minecraft": "1.19.4"
   },
   "breaks": {
-    "c2me-base": "*"
+    "c2me-rewrites-chunkio": "*"
   }
 }
