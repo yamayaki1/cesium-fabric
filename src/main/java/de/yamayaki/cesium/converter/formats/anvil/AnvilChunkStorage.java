@@ -5,7 +5,7 @@ import de.yamayaki.cesium.CesiumMod;
 import de.yamayaki.cesium.converter.IChunkStorage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.chunk.storage.IOWorker;
+import net.minecraft.world.level.chunk.storage.RegionFileStorage;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,16 +20,16 @@ public class AnvilChunkStorage implements IChunkStorage {
 
     private final Path basePath;
 
-    private final IOWorker chunkData;
-    private final IOWorker poiData;
-    private final IOWorker entityData;
+    private final RegionFileStorage chunkData;
+    private final RegionFileStorage poiData;
+    private final RegionFileStorage entityData;
 
     public AnvilChunkStorage(final Path basePath) {
         this.basePath = basePath;
 
-        this.chunkData = new IOWorker(basePath.resolve("region"), false, "Anvil-Chunks");
-        this.poiData = new IOWorker(basePath.resolve("poi"), false, "Anvil-POI");
-        this.entityData = new IOWorker(basePath.resolve("entities"), false, "Anvil-Entities");
+        this.chunkData = new RegionFileStorage(basePath.resolve("region"), false);
+        this.poiData = new RegionFileStorage(basePath.resolve("poi"), false);
+        this.entityData = new RegionFileStorage(basePath.resolve("entities"), false);
     }
 
     @Override
@@ -62,9 +62,13 @@ public class AnvilChunkStorage implements IChunkStorage {
 
     @Override
     public void flush() {
-        this.chunkData.synchronize(true).join();
-        this.poiData.synchronize(true).join();
-        this.chunkData.synchronize(true).join();
+        try {
+            this.chunkData.flush();
+            this.poiData.flush();
+            this.chunkData.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -82,34 +86,55 @@ public class AnvilChunkStorage implements IChunkStorage {
 
     @Override
     public void setChunkData(final ChunkPos chunkPos, final CompoundTag compoundTag) {
-        this.chunkData.store(chunkPos, compoundTag);
+        try {
+            this.chunkData.write(chunkPos, compoundTag);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public CompoundTag getChunkData(final ChunkPos chunkPos) {
-        return this.chunkData.loadAsync(chunkPos).join().orElse(null);
-
+        try {
+            return this.chunkData.read(chunkPos);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void setPOIData(final ChunkPos chunkPos, final CompoundTag compoundTag) {
-        this.poiData.store(chunkPos, compoundTag);
+        try {
+            this.poiData.write(chunkPos, compoundTag);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public CompoundTag getPOIData(final ChunkPos chunkPos) {
-        return this.poiData.loadAsync(chunkPos).join().orElse(null);
-
+        try {
+            return this.poiData.read(chunkPos);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void setEntityData(final ChunkPos chunkPos, final CompoundTag compoundTag) {
-        this.entityData.store(chunkPos, compoundTag);
+        try {
+            this.entityData.write(chunkPos, compoundTag);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public CompoundTag getEntityData(final ChunkPos chunkPos) {
-        return this.entityData.loadAsync(chunkPos).join().orElse(null);
-
+        try {
+            return this.entityData.read(chunkPos);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
