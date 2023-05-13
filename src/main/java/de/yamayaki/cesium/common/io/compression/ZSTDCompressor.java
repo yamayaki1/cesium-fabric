@@ -16,7 +16,7 @@ public class ZSTDCompressor implements StreamCompressor {
     @Override
     public byte[] compress(byte[] src) {
         byte[] dst = new byte[(int) Zstd.compressBound(src.length)];
-        int size = (int) checkError(Zstd.compress(dst, src, 7));
+        int size = (int) checkError(Zstd.compress(dst, src, 12));
 
         return Arrays.copyOfRange(dst, 0, size);
     }
