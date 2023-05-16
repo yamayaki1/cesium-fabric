@@ -42,7 +42,7 @@ public class KVTransaction<K, V> {
     }
 
     void addChanges(Txn<byte[]> txn) {
-        this.lock.readLock()
+        this.lock.writeLock()
                 .lock();
 
         try {
@@ -54,19 +54,20 @@ public class KVTransaction<K, V> {
                 }
             }
         } finally {
-            this.lock.readLock()
-                    .unlock();
-        }
-    }
-
-    void clear() {
-        this.lock.writeLock()
-                .lock();
-        try {
-            this.pending.clear();
-        } finally {
             this.lock.writeLock()
                     .unlock();
         }
+    }
+    
+    public void lock() {
+        this.lock.writeLock().lock();
+    }
+    
+    public void unlock() {
+        this.lock.writeLock().unlock();
+    }
+
+    void clear() {
+        this.pending.clear();
     }
 }

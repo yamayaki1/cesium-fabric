@@ -90,58 +90,64 @@ public class LMDBInstance {
         boolean success = false;
         int tries = 0;
 
-        while (!success && tries < maxCommitTries) {
-            tries++;
+        this.transactions.values().forEach(KVTransaction::lock);
 
-            Iterator<KVTransaction<?, ?>> it = this.transactions.values()
-                    .iterator();
+        try {
+            while (!success && tries < maxCommitTries) {
+                tries++;
 
-            Txn<byte[]> txn = this.env.txnWrite();
+                Iterator<KVTransaction<?, ?>> it = this.transactions.values()
+                        .iterator();
 
-            try {
-                while (it.hasNext()) {
-                    try {
-                        KVTransaction<?, ?> transaction = it.next();
-                        transaction.addChanges(txn);
-                    } catch (LmdbException e) {
-                        if (e instanceof Env.MapFullException) {
-                            txn.abort();
+                Txn<byte[]> txn = this.env.txnWrite();
 
-                            this.growMap();
+                try {
+                    while (it.hasNext()) {
+                        try {
+                            KVTransaction<?, ?> transaction = it.next();
+                            transaction.addChanges(txn);
+                        } catch (LmdbException e) {
+                            if (e instanceof Env.MapFullException) {
+                                txn.abort();
 
-                            txn = this.env.txnWrite();
-                            it = this.transactions.values()
-                                    .iterator();
-                        } else {
-                            throw e;
+                                this.growMap();
+
+                                txn = this.env.txnWrite();
+                                it = this.transactions.values()
+                                        .iterator();
+                            } else {
+                                throw e;
+                            }
                         }
                     }
-                }
-            } catch (Throwable t) {
-                txn.abort();
+                } catch (Throwable t) {
+                    txn.abort();
 
-                throw t;
+                    throw t;
+                }
+
+                try {
+                    txn.commit();
+                    success = true;
+                } catch (LmdbException e) {
+                    if (e instanceof Env.MapFullException) {
+                        CesiumMod.logger().info("Commit of transaction failed; trying again ({}/{})", tries, this.maxCommitTries);
+                        this.growMap();
+                    } else {
+                        throw e;
+                    }
+                }
             }
 
-            try {
-                txn.commit();
-                success = true;
-            } catch (LmdbException e) {
-                if (e instanceof Env.MapFullException) {
-                    CesiumMod.logger().info("Commit of transaction failed; trying again ({}/{})", tries, this.maxCommitTries);
-                    this.growMap();
-                } else {
-                    throw e;
-                }
+            if (!success) {
+                throw new RuntimeException("Commit failed " + this.maxCommitTries + " times.");
             }
-        }
 
-        if (!success) {
-            throw new RuntimeException("Commit failed " + this.maxCommitTries + " times.");
+            this.transactions.values()
+                    .forEach(KVTransaction::clear);
+        } finally {
+            this.transactions.values().forEach(KVTransaction::unlock);
         }
-
-        this.transactions.values()
-                .forEach(KVTransaction::clear);
     }
 
     private void growMap() {
