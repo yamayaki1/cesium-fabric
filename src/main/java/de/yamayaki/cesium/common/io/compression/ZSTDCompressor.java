@@ -1,6 +1,7 @@
 package de.yamayaki.cesium.common.io.compression;
 
 import com.github.luben.zstd.Zstd;
+import de.yamayaki.cesium.CesiumMod;
 
 import java.util.Arrays;
 
@@ -16,7 +17,7 @@ public class ZSTDCompressor implements StreamCompressor {
     @Override
     public byte[] compress(byte[] src) {
         byte[] dst = new byte[(int) Zstd.compressBound(src.length)];
-        int size = (int) checkError(Zstd.compress(dst, src, 12));
+        int size = (int) checkError(Zstd.compress(dst, src, CesiumMod.config().getCompression().getLevel()));
 
         return Arrays.copyOfRange(dst, 0, size);
     }

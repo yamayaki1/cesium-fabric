@@ -154,10 +154,13 @@ public class LMDBInstance {
         EnvInfo info = this.env.info();
 
         long oldSize = info.mapSize;
-        long newSize = oldSize + this.resizeStep;
+        long newSize = oldSize + (long) (this.resizeStep * CesiumMod.config().getMapGrow().getMultiply());
 
         this.env.setMapSize(newSize);
-        CesiumMod.logger().info("Grew map size from {} to {} MB", (oldSize / 1024 / 1024), (newSize / 1024 / 1024));
+
+        if (CesiumMod.config().getMapGrow().getLog()) {
+            CesiumMod.logger().info("Grew map size from {} to {} MB", (oldSize / 1024 / 1024), (newSize / 1024 / 1024));
+        }
     }
 
     ReentrantReadWriteLock getLock() {

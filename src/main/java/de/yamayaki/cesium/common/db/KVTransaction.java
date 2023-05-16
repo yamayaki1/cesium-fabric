@@ -58,11 +58,11 @@ public class KVTransaction<K, V> {
                     .unlock();
         }
     }
-    
+
     public void lock() {
         this.lock.writeLock().lock();
     }
-    
+
     public void unlock() {
         this.lock.writeLock().unlock();
     }
