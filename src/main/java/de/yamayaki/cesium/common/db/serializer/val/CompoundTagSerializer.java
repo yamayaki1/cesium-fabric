@@ -1,7 +1,7 @@
 package de.yamayaki.cesium.common.db.serializer.val;
 
-import de.yamayaki.cesium.common.Scannable;
 import de.yamayaki.cesium.common.db.serializer.ValueSerializer;
+import de.yamayaki.cesium.common.io.Scannable;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.StreamTagVisitor;

@@ -1,10 +1,10 @@
 package de.yamayaki.cesium.common.db;
 
-import de.yamayaki.cesium.common.Scannable;
 import de.yamayaki.cesium.common.db.serializer.DefaultSerializers;
 import de.yamayaki.cesium.common.db.serializer.KeySerializer;
 import de.yamayaki.cesium.common.db.serializer.ValueSerializer;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
+import de.yamayaki.cesium.common.io.Scannable;
 import de.yamayaki.cesium.common.io.compression.StreamCompressor;
 import org.lmdbjava.Cursor;
 import org.lmdbjava.Dbi;

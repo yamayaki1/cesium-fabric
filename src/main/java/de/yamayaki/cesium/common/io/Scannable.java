@@ -1,4 +1,4 @@
-package de.yamayaki.cesium.common;
+package de.yamayaki.cesium.common.io;
 
 import java.io.IOException;
 
