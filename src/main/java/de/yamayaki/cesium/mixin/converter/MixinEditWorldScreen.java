@@ -36,7 +36,7 @@ public abstract class MixinEditWorldScreen extends Screen {
             this.minecraft.setScreen(new ConvertWorldScreen(WorldConverter.Format.TO_CESIUM, this.minecraft, this.levelAccess, this.callback));
         }).bounds(this.width / 2 - 100, this.height / 4 + 168 + 5, 98, 20).build());
 
-        this.addRenderableWidget(Button.builder(Component.translatable("Cesium → Anvil"), buttonx -> {
+        this.addRenderableWidget(Button.builder(Component.literal("Cesium → Anvil"), buttonx -> {
             this.minecraft.setScreen(new ConvertWorldScreen(WorldConverter.Format.TO_ANVIL, this.minecraft, this.levelAccess, this.callback));
         }).bounds(this.width / 2 + 2, this.height / 4 + 168 + 5, 98, 20).build());
     }
