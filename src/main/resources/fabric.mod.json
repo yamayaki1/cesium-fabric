@@ -25,9 +25,10 @@
   ],
   "depends": {
     "fabricloader": ">=0.14.21",
-    "minecraft": "1.20"
+    "minecraft": "1.20.x"
   },
   "breaks": {
-    "c2me-rewrites-chunkio": "*"
+    "c2me-rewrites-chunkio": "*",
+    "c2me-rewrites-chunk-serializer": "*"
   }
 }
