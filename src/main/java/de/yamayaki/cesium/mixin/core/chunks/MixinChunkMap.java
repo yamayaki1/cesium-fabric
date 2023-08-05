@@ -17,6 +17,7 @@ import net.minecraft.world.level.storage.LevelStorageSource;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -31,17 +32,18 @@ public class MixinChunkMap {
     @Final
     private PoiManager poiManager;
 
+    @Unique
     private LMDBInstance database;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void reinit(ServerLevel serverLevel, LevelStorageSource.LevelStorageAccess levelStorageAccess, DataFixer dataFixer, StructureTemplateManager structureTemplateManager, Executor executor, BlockableEventLoop<?> blockableEventLoop, LightChunkGetter lightChunkGetter, ChunkGenerator chunkGenerator, ChunkProgressListener chunkProgressListener, ChunkStatusUpdateListener chunkStatusUpdateListener, Supplier<?> supplier, int i, boolean bl, CallbackInfo ci) {
-        this.database = ((DatabaseItem) serverLevel).getStorage();
+    private void setCesiumDB(ServerLevel serverLevel, LevelStorageSource.LevelStorageAccess levelStorageAccess, DataFixer dataFixer, StructureTemplateManager structureTemplateManager, Executor executor, BlockableEventLoop<?> blockableEventLoop, LightChunkGetter lightChunkGetter, ChunkGenerator chunkGenerator, ChunkProgressListener chunkProgressListener, ChunkStatusUpdateListener chunkStatusUpdateListener, Supplier<?> supplier, int i, boolean bl, CallbackInfo ci) {
+        this.database = ((DatabaseItem) serverLevel).cesium$getStorage();
 
         ((ChunkDatabaseAccess) this.poiManager)
-                .setDatabase(this.database);
+                .cesium$setDatabase(this.database);
 
         ((ChunkDatabaseAccess) this)
-                .setDatabase(this.database);
+                .cesium$setDatabase(this.database);
     }
 
     @Inject(method = "saveAllChunks", at = @At("RETURN"))
@@ -59,6 +61,7 @@ public class MixinChunkMap {
         this.flushChunks();
     }
 
+    @Unique
     private void flushChunks() {
         this.database.flushChanges();
     }

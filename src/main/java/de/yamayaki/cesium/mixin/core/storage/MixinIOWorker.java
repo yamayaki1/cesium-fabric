@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -31,19 +32,23 @@ public abstract class MixinIOWorker implements IOWorkerExtended {
     @Shadow
     @Final
     private static Logger LOGGER;
+
     @Shadow
     @Final
     private RegionFileStorage storage;
+
     @Shadow
     @Final
     private Map<ChunkPos, IOWorker.PendingStore> pendingWrites;
+
+    @Unique
     private KVProvider provider;
 
     @Shadow
     protected abstract <T> CompletableFuture<T> submitTask(Supplier<Either<T, Exception>> supplier);
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    public void reinit(Path path, boolean bl, String string, CallbackInfo ci) throws IOException {
+    public void disableRegionFile(Path path, boolean bl, String string, CallbackInfo ci) throws IOException {
         this.storage.close();
     }
 
@@ -59,7 +64,7 @@ public abstract class MixinIOWorker implements IOWorkerExtended {
                 return Either.left(Optional.ofNullable(pendingStore.data));
             } else {
                 try {
-                    CompoundTag compoundTag = this.provider.getDatabase().getValue(chunkPos);
+                    CompoundTag compoundTag = this.provider.cesium$getDatabase().getValue(chunkPos);
                     return Either.left(Optional.ofNullable(compoundTag));
                 } catch (Exception var4) {
                     LOGGER.warn("Failed to read chunk {}", chunkPos, var4);
@@ -107,7 +112,7 @@ public abstract class MixinIOWorker implements IOWorkerExtended {
                         pendingStore.data.acceptAsRoot(streamTagVisitor);
                     }
                 } else {
-                    this.provider.getDatabase().scan(chunkPos, streamTagVisitor);
+                    this.provider.cesium$getDatabase().scan(chunkPos, streamTagVisitor);
                 }
 
                 return Either.left(null);
@@ -119,17 +124,17 @@ public abstract class MixinIOWorker implements IOWorkerExtended {
     }
 
     @Redirect(method = "runStore", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/RegionFileStorage;write(Lnet/minecraft/world/level/ChunkPos;Lnet/minecraft/nbt/CompoundTag;)V"))
-    private void runStore$write(RegionFileStorage instance, ChunkPos chunkPos, CompoundTag compoundTag) {
-        this.provider.getTransaction().add(chunkPos, compoundTag);
+    private void cesium$write(RegionFileStorage instance, ChunkPos chunkPos, CompoundTag compoundTag) {
+        this.provider.cesium$getTransaction().add(chunkPos, compoundTag);
     }
 
     @Redirect(method = "close", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/RegionFileStorage;close()V"))
-    private void close$close(RegionFileStorage instance) {
+    private void cesium$close(RegionFileStorage instance) {
         // Do nothing
     }
 
     @Override
-    public void setKVProvider(KVProvider provider) {
+    public void cesium$setKVProvider(KVProvider provider) {
         this.provider = provider;
     }
 }

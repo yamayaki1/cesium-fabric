@@ -33,7 +33,7 @@ public class MixinPlayerList implements PlayerDatabaseAccess {
     private LMDBInstance database;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void reinit(MinecraftServer minecraftServer, LayeredRegistryAccess<?> layeredRegistryAccess, PlayerDataStorage playerDataStorage, int i, CallbackInfo ci) {
+    private void initCesiumPlayers(MinecraftServer minecraftServer, LayeredRegistryAccess<?> layeredRegistryAccess, PlayerDataStorage playerDataStorage, int i, CallbackInfo ci) {
         File dir = minecraftServer.getWorldPath(LevelResource.PLAYER_ADVANCEMENTS_DIR).getParent().toFile();
 
         this.database = new LMDBInstance(dir, "players", new DatabaseSpec[]{
@@ -43,15 +43,15 @@ public class MixinPlayerList implements PlayerDatabaseAccess {
         });
 
         ((DatabaseItem) this.playerIo)
-                .setStorage(this.database);
+                .cesium$setStorage(this.database);
     }
 
     @Inject(method = "getPlayerAdvancements", at = @At("RETURN"))
     private void postGetAdvancementTracker(ServerPlayer player, CallbackInfoReturnable<PlayerAdvancements> cir) {
         DatabaseItem item = (DatabaseItem) cir.getReturnValue();
 
-        if (item.getStorage() == null) {
-            item.setStorage(this.database);
+        if (item.cesium$getStorage() == null) {
+            item.cesium$setStorage(this.database);
         }
     }
 
@@ -59,8 +59,8 @@ public class MixinPlayerList implements PlayerDatabaseAccess {
     private void postCreateStatHandler(Player player, CallbackInfoReturnable<ServerStatsCounter> cir) {
         DatabaseItem item = (DatabaseItem) cir.getReturnValue();
 
-        if (item.getStorage() == null) {
-            item.setStorage(this.database);
+        if (item.cesium$getStorage() == null) {
+            item.cesium$setStorage(this.database);
         }
     }
 

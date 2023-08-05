@@ -34,18 +34,18 @@ public class MixinEntityStorage implements KVProvider {
     private IOWorker worker;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    public void reinit(ServerLevel serverLevel, Path path, DataFixer dataFixer, boolean bl, Executor executor, CallbackInfo ci) {
-        this.storage = ((DatabaseItem) serverLevel).getStorage();
-        ((IOWorkerExtended) this.worker).setKVProvider(this);
+    public void initCesiumEntities(ServerLevel serverLevel, Path path, DataFixer dataFixer, boolean bl, Executor executor, CallbackInfo ci) {
+        this.storage = ((DatabaseItem) serverLevel).cesium$getStorage();
+        ((IOWorkerExtended) this.worker).cesium$setKVProvider(this);
     }
 
     @Override
-    public KVDatabase<ChunkPos, CompoundTag> getDatabase() {
+    public KVDatabase<ChunkPos, CompoundTag> cesium$getDatabase() {
         return this.storage.getDatabase(WorldDatabaseSpecs.ENTITY);
     }
 
     @Override
-    public KVTransaction<ChunkPos, CompoundTag> getTransaction() {
+    public KVTransaction<ChunkPos, CompoundTag> cesium$getTransaction() {
         return this.storage.getTransaction(WorldDatabaseSpecs.ENTITY);
     }
 }

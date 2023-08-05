@@ -14,10 +14,17 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.io.File;
+import java.io.StringWriter;
+import java.io.Writer;
 
 @SuppressWarnings("OverwriteAuthorRequired")
 @Mixin(PlayerDataStorage.class)
@@ -26,15 +33,37 @@ public class MixinPlayerDataStorage implements DatabaseItem {
     @Final
     private static Logger LOGGER;
 
-    @Shadow
-    @Final
-    protected DataFixer fixerUpper;
-
+    @Unique
     private LMDBInstance database;
+
+    @Unique
+    private Player player;
 
     @Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Ljava/io/File;mkdirs()Z"))
     private boolean disableMkdirs(File file) {
         return true;
+    }
+
+    @Override
+    public LMDBInstance cesium$getStorage() {
+        return this.database;
+    }
+
+    @Override
+    public void cesium$setStorage(LMDBInstance storage) {
+        this.database = storage;
+    }
+
+    @Inject(method = "load", at = @At("HEAD"))
+    public void setPlayer(Player player, CallbackInfoReturnable<CompoundTag> cir) {
+        this.player = player;
+    }
+
+    @ModifyVariable(method = "load", at = @At(value = "STORE"))
+    private CompoundTag loadNbt(CompoundTag compoundTag) {
+        return this.cesium$getStorage()
+                .getDatabase(PlayerDatabaseSpecs.PLAYER_DATA)
+                .getValue(this.player.getUUID());
     }
 
     @Overwrite
@@ -46,36 +75,5 @@ public class MixinPlayerDataStorage implements DatabaseItem {
         } catch (Exception e) {
             LOGGER.warn("Failed to save player data for {}", playerEntity.getName().getString());
         }
-    }
-
-    @Overwrite
-    @Nullable
-    public CompoundTag load(Player playerEntity) {
-        CompoundTag compoundTag = null;
-
-        try {
-            compoundTag = this.database
-                    .getDatabase(PlayerDatabaseSpecs.PLAYER_DATA)
-                    .getValue(playerEntity.getUUID());
-        } catch (Exception e) {
-            LOGGER.warn("Failed to load player data for {}", playerEntity.getName().getString(), e);
-        }
-
-        if (compoundTag != null) {
-            int i = compoundTag.contains("DataVersion", 3) ? compoundTag.getInt("DataVersion") : -1;
-            playerEntity.load(DataFixTypes.PLAYER.updateToCurrentVersion(this.fixerUpper, compoundTag, i));
-        }
-
-        return compoundTag;
-    }
-
-    @Override
-    public LMDBInstance getStorage() {
-        return this.database;
-    }
-
-    @Override
-    public void setStorage(LMDBInstance storage) {
-        this.database = storage;
     }
 }

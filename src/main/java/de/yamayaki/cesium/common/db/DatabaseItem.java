@@ -1,7 +1,7 @@
 package de.yamayaki.cesium.common.db;
 
 public interface DatabaseItem {
-    LMDBInstance getStorage();
+    LMDBInstance cesium$getStorage();
 
-    void setStorage(LMDBInstance holder);
+    void cesium$setStorage(LMDBInstance holder);
 }

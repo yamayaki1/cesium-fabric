@@ -6,7 +6,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;
 
 public interface KVProvider {
-    KVDatabase<ChunkPos, CompoundTag> getDatabase();
+    KVDatabase<ChunkPos, CompoundTag> cesium$getDatabase();
 
-    KVTransaction<ChunkPos, CompoundTag> getTransaction();
+    KVTransaction<ChunkPos, CompoundTag> cesium$getTransaction();
 }
