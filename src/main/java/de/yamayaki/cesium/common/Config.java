@@ -14,10 +14,15 @@ public class Config {
     }
 
     public static class Compression {
-        private int level = 12;
+        private int level = 9;
+        private boolean experimental_dangerous_dont_enable_ibegyou_use_dictionary = false;
 
         public int getLevel() {
             return this.level;
+        }
+
+        public boolean usesDictionary() {
+            return this.experimental_dangerous_dont_enable_ibegyou_use_dictionary;
         }
     }
 

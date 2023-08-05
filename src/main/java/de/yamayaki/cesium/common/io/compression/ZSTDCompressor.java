@@ -6,6 +6,12 @@ import de.yamayaki.cesium.CesiumMod;
 import java.util.Arrays;
 
 public class ZSTDCompressor implements StreamCompressor {
+    private final int compressionLevel;
+
+    public ZSTDCompressor() {
+        this.compressionLevel = CesiumMod.config().getCompression().getLevel();
+    }
+
     private static long checkError(long rc) {
         if (Zstd.isError(rc)) {
             throw new IllegalStateException(Zstd.getErrorName(rc));
@@ -17,7 +23,7 @@ public class ZSTDCompressor implements StreamCompressor {
     @Override
     public byte[] compress(byte[] src) {
         byte[] dst = new byte[(int) Zstd.compressBound(src.length)];
-        int size = (int) checkError(Zstd.compress(dst, src, CesiumMod.config().getCompression().getLevel()));
+        int size = (int) checkError(Zstd.compress(dst, src, compressionLevel));
 
         return Arrays.copyOfRange(dst, 0, size);
     }
