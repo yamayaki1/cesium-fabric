@@ -5,13 +5,12 @@ import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import org.lmdbjava.Txn;
 
 import java.io.IOException;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class KVTransaction<K, V> {
     private final KVDatabase<K, V> storage;
-    private final Object2ReferenceMap<K, byte[]> pending = new Object2ReferenceOpenHashMap<>();
 
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private final Object2ReferenceMap<K, byte[]> pending = new Object2ReferenceOpenHashMap<>();
+    private final Object2ReferenceMap<K, byte[]> snapshot = new Object2ReferenceOpenHashMap<>();
 
     public KVTransaction(KVDatabase<K, V> storage) {
         this.storage = storage;
@@ -29,45 +28,32 @@ public class KVTransaction<K, V> {
                         .compress(serialized);
             }
 
-            this.lock.writeLock()
-                    .lock();
-
-            this.pending.put(key, data);
+            synchronized (this.pending) {
+                this.pending.put(key, data);
+            }
         } catch (IOException e) {
             throw new RuntimeException("Couldn't serialize value", e);
-        } finally {
-            this.lock.writeLock()
-                    .unlock();
+        }
+    }
+
+    void createSnapshot() {
+        synchronized (this.pending) {
+            this.snapshot.putAll(this.pending);
+            this.pending.clear();
         }
     }
 
     void addChanges(Txn<byte[]> txn) {
-        this.lock.writeLock()
-                .lock();
-
-        try {
-            for (Object2ReferenceMap.Entry<K, byte[]> entry : this.pending.object2ReferenceEntrySet()) {
-                if (entry.getValue() != null) {
-                    this.storage.putValue(txn, entry.getKey(), entry.getValue());
-                } else {
-                    this.storage.delete(txn, entry.getKey());
-                }
+        for (Object2ReferenceMap.Entry<K, byte[]> entry : this.snapshot.object2ReferenceEntrySet()) {
+            if (entry.getValue() != null) {
+                this.storage.putValue(txn, entry.getKey(), entry.getValue());
+            } else {
+                this.storage.delete(txn, entry.getKey());
             }
-        } finally {
-            this.lock.writeLock()
-                    .unlock();
         }
     }
 
-    public void lock() {
-        this.lock.writeLock().lock();
-    }
-
-    public void unlock() {
-        this.lock.writeLock().unlock();
-    }
-
-    void clear() {
-        this.pending.clear();
+    void clearSnapshot() {
+        this.snapshot.clear();
     }
 }
