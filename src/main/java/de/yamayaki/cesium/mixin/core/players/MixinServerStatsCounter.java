@@ -36,7 +36,8 @@ public abstract class MixinServerStatsCounter extends StatsCounter implements Da
     @Unique
     private LMDBInstance database;
 
-    @Shadow public abstract void parseLocal(DataFixer dataFixer, String string);
+    @Shadow
+    public abstract void parseLocal(DataFixer dataFixer, String string);
 
     @Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Ljava/io/File;isFile()Z"))
     public boolean killInitialLoad(File file) {

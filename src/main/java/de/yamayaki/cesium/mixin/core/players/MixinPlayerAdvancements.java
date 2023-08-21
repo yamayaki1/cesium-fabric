@@ -50,7 +50,7 @@ public abstract class MixinPlayerAdvancements implements DatabaseItem {
         this.database = storage;
 
         MinecraftServer server = this.player.getServer();
-        if(server != null) {
+        if (server != null) {
             this.load(server.getAdvancements());
         }
     }

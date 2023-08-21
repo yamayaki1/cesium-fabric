@@ -20,7 +20,7 @@ public class ChunkExporterMixin {
     private static final File basePath = new File(".", "exportedChunks/");
 
     static {
-        if(!basePath.exists() && !basePath.isDirectory() && !basePath.mkdirs()) {
+        if (!basePath.exists() && !basePath.isDirectory() && !basePath.mkdirs()) {
             throw new IllegalStateException("This should not have happened");
         }
     }
@@ -28,11 +28,11 @@ public class ChunkExporterMixin {
     @Inject(method = "store", at = @At("HEAD"))
     public void storeChunkOnDisk(ChunkPos chunkPos, CompoundTag compoundTag, CallbackInfoReturnable<CompletableFuture<Void>> cir) {
         try {
-            if(compoundTag == null || !compoundTag.contains("Status")) {
+            if (compoundTag == null || !compoundTag.contains("Status")) {
                 return;
             }
 
-            NbtIo.write(compoundTag, new File(basePath, chunkPos.toLong() +".nbt"));
+            NbtIo.write(compoundTag, new File(basePath, chunkPos.toLong() + ".nbt"));
         } catch (IOException ignored) {
         }
     }

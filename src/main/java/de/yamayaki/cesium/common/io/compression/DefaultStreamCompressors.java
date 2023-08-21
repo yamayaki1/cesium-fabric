@@ -15,5 +15,5 @@ public class DefaultStreamCompressors {
         }
     };
 
-    public static final StreamCompressor ZSTD = CesiumMod.config().getCompression().usesDictionary() ? new ZSTDDictionaryCompressor() :  new ZSTDCompressor();
+    public static final StreamCompressor ZSTD = CesiumMod.config().getCompression().usesDictionary() ? new ZSTDDictionaryCompressor() : new ZSTDCompressor();
 }
