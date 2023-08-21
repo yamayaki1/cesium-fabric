@@ -1,38 +1,23 @@
 package de.yamayaki.cesium.mixin.core.players;
 
-import com.mojang.datafixers.DataFixer;
 import de.yamayaki.cesium.common.db.DatabaseItem;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.impl.PlayerDatabaseSpecs;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.storage.PlayerDataStorage;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.io.File;
-import java.io.StringWriter;
-import java.io.Writer;
 
-@SuppressWarnings("OverwriteAuthorRequired")
 @Mixin(PlayerDataStorage.class)
 public class MixinPlayerDataStorage implements DatabaseItem {
-    @Shadow
-    @Final
-    private static Logger LOGGER;
-
     @Unique
     private LMDBInstance database;
 
@@ -66,14 +51,20 @@ public class MixinPlayerDataStorage implements DatabaseItem {
                 .getValue(this.player.getUUID());
     }
 
-    @Overwrite
-    public void save(Player playerEntity) {
-        try {
-            this.database
-                    .getTransaction(PlayerDatabaseSpecs.PLAYER_DATA)
-                    .add(playerEntity.getUUID(), playerEntity.saveWithoutId(new CompoundTag()));
-        } catch (Exception e) {
-            LOGGER.warn("Failed to save player data for {}", playerEntity.getName().getString());
-        }
+    @Redirect(method = "save", at = @At(value = "INVOKE", target = "Ljava/io/File;createTempFile(Ljava/lang/String;Ljava/lang/String;Ljava/io/File;)Ljava/io/File;"))
+    public File disableFileCreation(String se, String prefix, File suffix) {
+        return null;
+    }
+
+    @Redirect(method = "save", at = @At(value = "INVOKE", target = "Lnet/minecraft/nbt/NbtIo;writeCompressed(Lnet/minecraft/nbt/CompoundTag;Ljava/io/File;)V"))
+    public void redirectWrite(CompoundTag compoundTag, File file) {
+        this.database
+                .getTransaction(PlayerDatabaseSpecs.PLAYER_DATA)
+                .add(compoundTag.getUUID("UUID"), compoundTag);
+    }
+
+    @Redirect(method = "save", at = @At(value = "INVOKE", target = "Lnet/minecraft/Util;safeReplaceFile(Ljava/io/File;Ljava/io/File;Ljava/io/File;)V"))
+    public void disableFileMove(File file, File file2, File file3) {
+        // Do nothing
     }
 }
