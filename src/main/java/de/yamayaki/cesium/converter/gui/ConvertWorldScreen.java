@@ -49,7 +49,7 @@ public class ConvertWorldScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int i, int j, float f) {
-        this.renderBackground(guiGraphics);
+        this.renderDirtBackground(guiGraphics);
 
         final int textColor = 16777215;
         final int textOffset = 14;

@@ -33,11 +33,11 @@ public abstract class MixinServerStatsCounter extends StatsCounter implements Da
     @Final
     private MinecraftServer server;
 
-    @Unique
-    private LMDBInstance database;
-
     @Shadow
     public abstract void parseLocal(DataFixer dataFixer, String string);
+
+    @Unique
+    private LMDBInstance database;
 
     @Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Ljava/io/File;isFile()Z"))
     public boolean killInitialLoad(File file) {
@@ -75,7 +75,7 @@ public abstract class MixinServerStatsCounter extends StatsCounter implements Da
         return this.database;
     }
 
-    @Redirect(method = "save", at = @At(value = "INVOKE", target = "Lorg/apache/commons/io/FileUtils;writeStringToFile(Ljava/io/File;Ljava/lang/String;)V"))
+    @Redirect(method = "save", at = @At(value = "INVOKE", target = "Lorg/apache/commons/io/FileUtils;writeStringToFile(Ljava/io/File;Ljava/lang/String;)V"), remap = false)
     public void redirectWrite(File file, String data) {
         this.database
                 .getTransaction(PlayerDatabaseSpecs.STATISTICS)

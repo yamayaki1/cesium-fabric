@@ -41,11 +41,11 @@ public abstract class MixinIOWorker implements IOWorkerExtended {
     @Final
     private Map<ChunkPos, IOWorker.PendingStore> pendingWrites;
 
-    @Unique
-    private KVProvider provider;
-
     @Shadow
     protected abstract <T> CompletableFuture<T> submitTask(Supplier<Either<T, Exception>> supplier);
+
+    @Unique
+    private KVProvider provider;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     public void disableRegionFile(Path path, boolean bl, String string, CallbackInfo ci) throws IOException {

@@ -17,6 +17,7 @@ import net.minecraft.world.level.storage.PlayerDataStorage;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -30,6 +31,7 @@ public class MixinPlayerList implements PlayerDatabaseAccess {
     @Final
     private PlayerDataStorage playerIo;
 
+    @Unique
     private LMDBInstance database;
 
     @Inject(method = "<init>", at = @At("RETURN"))
@@ -65,7 +67,7 @@ public class MixinPlayerList implements PlayerDatabaseAccess {
     }
 
     @Override
-    public LMDBInstance getDatabase() {
+    public LMDBInstance cesium$getDatabase() {
         return this.database;
     }
 }

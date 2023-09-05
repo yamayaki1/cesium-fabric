@@ -25,7 +25,7 @@
   ],
   "depends": {
     "fabricloader": ">=0.14.21",
-    "minecraft": "1.20.x"
+    "minecraft": ">=1.20.2-beta.1"
   },
   "breaks": {
     "c2me-rewrites-chunkio": "*",

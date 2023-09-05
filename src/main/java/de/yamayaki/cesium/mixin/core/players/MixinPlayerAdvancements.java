@@ -91,8 +91,8 @@ public abstract class MixinPlayerAdvancements implements DatabaseItem {
         return new StringWriter();
     }
 
-    @Inject(method = "save", at = @At(value = "INVOKE", target = "Lcom/google/gson/Gson;toJson(Lcom/google/gson/JsonElement;Ljava/lang/Appendable;)V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
-    private void saveStringWriterContent(CallbackInfo ci, Map map, JsonElement jsonElement, Writer writer) {
+    @Inject(method = "save", at = @At(value = "INVOKE", target = "Lcom/google/gson/Gson;toJson(Lcom/google/gson/JsonElement;Ljava/lang/Appendable;)V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD, remap = false)
+    private void saveStringWriterContent(CallbackInfo ci, JsonElement jsonElement, Writer writer) {
         this.cesium$getStorage()
                 .getTransaction(PlayerDatabaseSpecs.ADVANCEMENTS)
                 .add(this.player.getUUID(), writer.toString());

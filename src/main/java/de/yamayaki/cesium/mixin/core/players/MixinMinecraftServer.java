@@ -19,14 +19,14 @@ public class MixinMinecraftServer {
     @Inject(method = "tickServer", at = @At(value = "RETURN"))
     private void postTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
         ((PlayerDatabaseAccess) this.playerList)
-                .getDatabase()
+                .cesium$getDatabase()
                 .flushChanges();
     }
 
     @Inject(method = "stopServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;removeAll()V"))
     private void postSaveAllPlayerList(CallbackInfo ci) {
         ((PlayerDatabaseAccess) this.playerList)
-                .getDatabase()
+                .cesium$getDatabase()
                 .close();
     }
 }

@@ -17,7 +17,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(EditWorldScreen.class)
 public abstract class MixinEditWorldScreen extends Screen {
-
     @Shadow
     @Final
     private LevelStorageSource.LevelStorageAccess levelAccess;
