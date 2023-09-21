@@ -3,6 +3,7 @@ package de.yamayaki.cesium.common.db.serializer.val;
 import de.yamayaki.cesium.common.db.serializer.ValueSerializer;
 import de.yamayaki.cesium.common.io.Scannable;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.StreamTagVisitor;
 
@@ -33,7 +34,7 @@ public class CompoundTagSerializer implements ValueSerializer<CompoundTag>, Scan
     @Override
     public void scan(byte[] byteBuffer, StreamTagVisitor scanner) throws IOException {
         try (DataInputStream dataInput = new DataInputStream(new ByteArrayInputStream(byteBuffer))) {
-            NbtIo.parse(dataInput, scanner);
+            NbtIo.parse(dataInput, scanner, NbtAccounter.unlimitedHeap());
         }
     }
 }
