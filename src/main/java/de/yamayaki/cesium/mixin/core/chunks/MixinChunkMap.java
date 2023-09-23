@@ -32,37 +32,14 @@ public class MixinChunkMap {
     @Final
     private PoiManager poiManager;
 
-    @Unique
-    private LMDBInstance database;
-
     @Inject(method = "<init>", at = @At("RETURN"))
     private void setCesiumDB(ServerLevel serverLevel, LevelStorageSource.LevelStorageAccess levelStorageAccess, DataFixer dataFixer, StructureTemplateManager structureTemplateManager, Executor executor, BlockableEventLoop<?> blockableEventLoop, LightChunkGetter lightChunkGetter, ChunkGenerator chunkGenerator, ChunkProgressListener chunkProgressListener, ChunkStatusUpdateListener chunkStatusUpdateListener, Supplier<?> supplier, int i, boolean bl, CallbackInfo ci) {
-        this.database = ((DatabaseSource) serverLevel).cesium$getStorage();
+        LMDBInstance database = ((DatabaseSource) serverLevel).cesium$getStorage();
 
         ((DatabaseSetter) this.poiManager)
-                .cesium$setStorage(this.database);
+                .cesium$setStorage(database);
 
         ((DatabaseSetter) this)
-                .cesium$setStorage(this.database);
-    }
-
-    @Inject(method = "saveAllChunks", at = @At("RETURN"))
-    private void postSaveChunks(boolean flush, CallbackInfo ci) {
-        this.flushChunks();
-    }
-
-    @Inject(method = "processUnloads", at = @At("RETURN"))
-    private void postUnloadChunks(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-        this.flushChunks();
-    }
-
-    @Inject(method = "tick", at = @At("RETURN"))
-    private void postTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-        this.flushChunks();
-    }
-
-    @Unique
-    private void flushChunks() {
-        this.database.flushChanges();
+                .cesium$setStorage(database);
     }
 }
