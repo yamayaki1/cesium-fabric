@@ -1,7 +1,7 @@
 package de.yamayaki.cesium.mixin.core.players;
 
-import de.yamayaki.cesium.common.PlayerDatabaseAccess;
-import de.yamayaki.cesium.common.db.DatabaseItem;
+import de.yamayaki.cesium.accessor.DatabaseSetter;
+import de.yamayaki.cesium.accessor.DatabaseSource;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import de.yamayaki.cesium.common.db.spec.impl.PlayerDatabaseSpecs;
@@ -22,11 +22,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.util.UUID;
 
 @Mixin(PlayerList.class)
-public class MixinPlayerList implements PlayerDatabaseAccess {
+public class MixinPlayerList implements DatabaseSource {
     @Shadow
     @Final
     private PlayerDataStorage playerIo;
@@ -44,30 +47,22 @@ public class MixinPlayerList implements PlayerDatabaseAccess {
                 PlayerDatabaseSpecs.STATISTICS
         });
 
-        ((DatabaseItem) this.playerIo)
+        ((DatabaseSetter) this.playerIo)
                 .cesium$setStorage(this.database);
     }
 
-    @Inject(method = "getPlayerAdvancements", at = @At("RETURN"))
-    private void postGetAdvancementTracker(ServerPlayer player, CallbackInfoReturnable<PlayerAdvancements> cir) {
-        DatabaseItem item = (DatabaseItem) cir.getReturnValue();
-
-        if (item.cesium$getStorage() == null) {
-            item.cesium$setStorage(this.database);
-        }
+    @Inject(method = "getPlayerAdvancements", at = @At(value = "INVOKE", target = "Ljava/util/Map;put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", shift = At.Shift.BEFORE), locals = LocalCapture.CAPTURE_FAILHARD)
+    private void setAdvancementsStorage(ServerPlayer serverPlayer, CallbackInfoReturnable<PlayerAdvancements> cir, UUID uUID, PlayerAdvancements playerAdvancements, Path path) {
+        ((DatabaseSetter) playerAdvancements).cesium$setStorage(this.database);
     }
 
-    @Inject(method = "getPlayerStats", at = @At("RETURN"))
-    private void postCreateStatHandler(Player player, CallbackInfoReturnable<ServerStatsCounter> cir) {
-        DatabaseItem item = (DatabaseItem) cir.getReturnValue();
-
-        if (item.cesium$getStorage() == null) {
-            item.cesium$setStorage(this.database);
-        }
+    @Inject(method = "getPlayerStats", at = @At(value = "INVOKE", target = "Ljava/util/Map;put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", shift = At.Shift.BEFORE), locals = LocalCapture.CAPTURE_FAILHARD)
+    private void setStatsStorage(Player player, CallbackInfoReturnable<ServerStatsCounter> cir, UUID uUID, ServerStatsCounter serverStatsCounter, File file, File file2) {
+        ((DatabaseSetter) serverStatsCounter).cesium$setStorage(this.database);
     }
 
     @Override
-    public LMDBInstance cesium$getDatabase() {
+    public LMDBInstance cesium$getStorage() {
         return this.database;
     }
 }

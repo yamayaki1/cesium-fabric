@@ -1,8 +1,8 @@
 package de.yamayaki.cesium.mixin.core.chunks;
 
 import com.mojang.datafixers.DataFixer;
-import de.yamayaki.cesium.common.ChunkDatabaseAccess;
-import de.yamayaki.cesium.common.db.DatabaseItem;
+import de.yamayaki.cesium.accessor.DatabaseSetter;
+import de.yamayaki.cesium.accessor.DatabaseSource;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.ServerLevel;
@@ -37,13 +37,13 @@ public class MixinChunkMap {
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void setCesiumDB(ServerLevel serverLevel, LevelStorageSource.LevelStorageAccess levelStorageAccess, DataFixer dataFixer, StructureTemplateManager structureTemplateManager, Executor executor, BlockableEventLoop<?> blockableEventLoop, LightChunkGetter lightChunkGetter, ChunkGenerator chunkGenerator, ChunkProgressListener chunkProgressListener, ChunkStatusUpdateListener chunkStatusUpdateListener, Supplier<?> supplier, int i, boolean bl, CallbackInfo ci) {
-        this.database = ((DatabaseItem) serverLevel).cesium$getStorage();
+        this.database = ((DatabaseSource) serverLevel).cesium$getStorage();
 
-        ((ChunkDatabaseAccess) this.poiManager)
-                .cesium$setDatabase(this.database);
+        ((DatabaseSetter) this.poiManager)
+                .cesium$setStorage(this.database);
 
-        ((ChunkDatabaseAccess) this)
-                .cesium$setDatabase(this.database);
+        ((DatabaseSetter) this)
+                .cesium$setStorage(this.database);
     }
 
     @Inject(method = "saveAllChunks", at = @At("RETURN"))

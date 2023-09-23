@@ -1,6 +1,6 @@
 package de.yamayaki.cesium.mixin.core.chunks;
 
-import de.yamayaki.cesium.common.db.DatabaseItem;
+import de.yamayaki.cesium.accessor.DatabaseSource;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import de.yamayaki.cesium.common.db.spec.impl.WorldDatabaseSpecs;
@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 @Mixin(ServerLevel.class)
-public class MixinServerLevel implements DatabaseItem {
+public class MixinServerLevel implements DatabaseSource {
     @Unique
     private LMDBInstance database;
 
@@ -43,9 +43,5 @@ public class MixinServerLevel implements DatabaseItem {
     @Override
     public LMDBInstance cesium$getStorage() {
         return this.database;
-    }
-
-    @Override
-    public void cesium$setStorage(LMDBInstance holder) {
     }
 }

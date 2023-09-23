@@ -2,7 +2,7 @@ package de.yamayaki.cesium.mixin.core.players;
 
 import com.google.gson.JsonParseException;
 import com.mojang.datafixers.DataFixer;
-import de.yamayaki.cesium.common.db.DatabaseItem;
+import de.yamayaki.cesium.accessor.DatabaseSetter;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.impl.PlayerDatabaseSpecs;
 import net.minecraft.server.MinecraftServer;
@@ -20,7 +20,7 @@ import java.io.File;
 import java.util.UUID;
 
 @Mixin(ServerStatsCounter.class)
-public abstract class MixinServerStatsCounter extends StatsCounter implements DatabaseItem {
+public abstract class MixinServerStatsCounter extends StatsCounter implements DatabaseSetter {
     @Shadow
     @Final
     private static Logger LOGGER;
@@ -68,11 +68,6 @@ public abstract class MixinServerStatsCounter extends StatsCounter implements Da
         } catch (Exception var4) {
             LOGGER.error("Couldn't read statistics for player {}", this.getUuid(), var4);
         }
-    }
-
-    @Override
-    public LMDBInstance cesium$getStorage() {
-        return this.database;
     }
 
     @Redirect(method = "save", at = @At(value = "INVOKE", target = "Lorg/apache/commons/io/FileUtils;writeStringToFile(Ljava/io/File;Ljava/lang/String;)V"), remap = false)

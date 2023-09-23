@@ -1,11 +1,12 @@
 package de.yamayaki.cesium.mixin.core.players;
 
-import de.yamayaki.cesium.common.db.DatabaseItem;
+import de.yamayaki.cesium.accessor.DatabaseSetter;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.impl.PlayerDatabaseSpecs;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.storage.PlayerDataStorage;
+import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -16,8 +17,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.io.File;
 
+@Debug(export = true)
 @Mixin(PlayerDataStorage.class)
-public class MixinPlayerDataStorage implements DatabaseItem {
+public class MixinPlayerDataStorage implements DatabaseSetter {
     @Unique
     private LMDBInstance database;
 
@@ -27,11 +29,6 @@ public class MixinPlayerDataStorage implements DatabaseItem {
     @Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Ljava/io/File;mkdirs()Z"))
     private boolean disableMkdirs(File file) {
         return true;
-    }
-
-    @Override
-    public LMDBInstance cesium$getStorage() {
-        return this.database;
     }
 
     @Override
@@ -46,7 +43,7 @@ public class MixinPlayerDataStorage implements DatabaseItem {
 
     @ModifyVariable(method = "load", at = @At(value = "STORE"))
     private CompoundTag loadNbt(CompoundTag compoundTag) {
-        return this.cesium$getStorage()
+        return this.database
                 .getDatabase(PlayerDatabaseSpecs.PLAYER_DATA)
                 .getValue(this.player.getUUID());
     }

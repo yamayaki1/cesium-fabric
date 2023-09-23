@@ -1,8 +1,10 @@
 package de.yamayaki.cesium.mixin.core.storage;
 
 import com.mojang.datafixers.util.Either;
-import de.yamayaki.cesium.common.IOWorkerExtended;
-import de.yamayaki.cesium.common.KVProvider;
+import de.yamayaki.cesium.accessor.DatabaseSetter;
+import de.yamayaki.cesium.accessor.SpecificationSetter;
+import de.yamayaki.cesium.common.db.LMDBInstance;
+import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.StreamTagVisitor;
 import net.minecraft.world.level.ChunkPos;
@@ -28,7 +30,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Mixin(IOWorker.class)
-public abstract class MixinIOWorker implements IOWorkerExtended {
+public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSetter {
     @Shadow
     @Final
     private static Logger LOGGER;
@@ -45,7 +47,10 @@ public abstract class MixinIOWorker implements IOWorkerExtended {
     protected abstract <T> CompletableFuture<T> submitTask(Supplier<Either<T, Exception>> supplier);
 
     @Unique
-    private KVProvider provider;
+    private LMDBInstance lmdbStorage;
+
+    @Unique
+    private DatabaseSpec<ChunkPos, CompoundTag> databaseSpec;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     public void disableRegionFile(Path path, boolean bl, String string, CallbackInfo ci) throws IOException {
@@ -64,7 +69,10 @@ public abstract class MixinIOWorker implements IOWorkerExtended {
                 return Either.left(Optional.ofNullable(pendingStore.data));
             } else {
                 try {
-                    CompoundTag compoundTag = this.provider.cesium$getDatabase().getValue(chunkPos);
+                    CompoundTag compoundTag = this.lmdbStorage
+                            .getDatabase(this.databaseSpec)
+                            .getValue(chunkPos);
+
                     return Either.left(Optional.ofNullable(compoundTag));
                 } catch (Exception var4) {
                     LOGGER.warn("Failed to read chunk {}", chunkPos, var4);
@@ -80,22 +88,14 @@ public abstract class MixinIOWorker implements IOWorkerExtended {
      */
     @Overwrite
     public CompletableFuture<Void> synchronize(boolean bl) {
-        CompletableFuture<Void> completableFuture = this.submitTask(
-                        () -> Either.left(
-                                CompletableFuture.allOf(
-                                        this.pendingWrites.values().stream().map(pendingStore -> pendingStore.result).toArray(CompletableFuture[]::new)
-                                )
-                        )
+        return this.submitTask(() -> Either.left(
+                CompletableFuture.allOf(
+                        this.pendingWrites.values()
+                                .stream()
+                                .map(pendingStore -> pendingStore.result)
+                                .toArray(CompletableFuture[]::new)
                 )
-                .thenCompose(Function.identity());
-        return bl ? completableFuture.thenCompose(void_ -> this.submitTask(() -> {
-            try {
-                return Either.left(null);
-            } catch (Exception var2x) {
-                LOGGER.warn("Failed to synchronize chunks", var2x);
-                return Either.right(var2x);
-            }
-        })) : completableFuture.thenCompose(void_ -> this.submitTask(() -> Either.left(null)));
+        )).thenCompose(Function.identity());
     }
 
     /**
@@ -112,7 +112,9 @@ public abstract class MixinIOWorker implements IOWorkerExtended {
                         pendingStore.data.acceptAsRoot(streamTagVisitor);
                     }
                 } else {
-                    this.provider.cesium$getDatabase().scan(chunkPos, streamTagVisitor);
+                    this.lmdbStorage
+                            .getDatabase(this.databaseSpec)
+                            .scan(chunkPos, streamTagVisitor);
                 }
 
                 return Either.left(null);
@@ -125,7 +127,9 @@ public abstract class MixinIOWorker implements IOWorkerExtended {
 
     @Redirect(method = "runStore", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/RegionFileStorage;write(Lnet/minecraft/world/level/ChunkPos;Lnet/minecraft/nbt/CompoundTag;)V"))
     private void cesium$write(RegionFileStorage instance, ChunkPos chunkPos, CompoundTag compoundTag) {
-        this.provider.cesium$getTransaction().add(chunkPos, compoundTag);
+        this.lmdbStorage
+                .getTransaction(this.databaseSpec)
+                .add(chunkPos, compoundTag);
     }
 
     @Redirect(method = "close", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/RegionFileStorage;close()V"))
@@ -134,7 +138,12 @@ public abstract class MixinIOWorker implements IOWorkerExtended {
     }
 
     @Override
-    public void cesium$setKVProvider(KVProvider provider) {
-        this.provider = provider;
+    public void cesium$setStorage(LMDBInstance lmdbInstance) {
+        this.lmdbStorage = lmdbInstance;
+    }
+
+    @Override
+    public void cesium$setSpec(DatabaseSpec<?, ?> databaseSpec) {
+        this.databaseSpec = (DatabaseSpec<ChunkPos, CompoundTag>) databaseSpec;
     }
 }

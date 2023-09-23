@@ -1,7 +1,7 @@
 package de.yamayaki.cesium.mixin.core.players;
 
 import com.google.gson.JsonElement;
-import de.yamayaki.cesium.common.db.DatabaseItem;
+import de.yamayaki.cesium.accessor.DatabaseSetter;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.impl.PlayerDatabaseSpecs;
 import net.minecraft.server.MinecraftServer;
@@ -27,10 +27,9 @@ import java.nio.charset.Charset;
 import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
-import java.util.Map;
 
 @Mixin(PlayerAdvancements.class)
-public abstract class MixinPlayerAdvancements implements DatabaseItem {
+public abstract class MixinPlayerAdvancements implements DatabaseSetter {
     @Shadow
     private ServerPlayer player;
 
@@ -55,21 +54,16 @@ public abstract class MixinPlayerAdvancements implements DatabaseItem {
         }
     }
 
-    @Override
-    public LMDBInstance cesium$getStorage() {
-        return this.database;
-    }
-
     @Redirect(method = "load", at = @At(value = "INVOKE", target = "Ljava/nio/file/Files;isRegularFile(Ljava/nio/file/Path;[Ljava/nio/file/LinkOption;)Z"))
     private boolean redirectFileExists(Path provider, LinkOption[] ioe) {
-        return this.cesium$getStorage()
+        return this.database
                 .getDatabase(PlayerDatabaseSpecs.ADVANCEMENTS)
                 .getValue(this.player.getUUID()) != null;
     }
 
     @Redirect(method = "load", at = @At(value = "INVOKE", target = "Ljava/nio/file/Files;newBufferedReader(Ljava/nio/file/Path;Ljava/nio/charset/Charset;)Ljava/io/BufferedReader;"))
     private BufferedReader redirectBufferedReaderInstantiation(Path path, Charset cs) {
-        final String advancements = this.cesium$getStorage()
+        final String advancements = this.database
                 .getDatabase(PlayerDatabaseSpecs.ADVANCEMENTS)
                 .getValue(this.player.getUUID());
 
@@ -93,7 +87,7 @@ public abstract class MixinPlayerAdvancements implements DatabaseItem {
 
     @Inject(method = "save", at = @At(value = "INVOKE", target = "Lcom/google/gson/Gson;toJson(Lcom/google/gson/JsonElement;Ljava/lang/Appendable;)V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD, remap = false)
     private void saveStringWriterContent(CallbackInfo ci, JsonElement jsonElement, Writer writer) {
-        this.cesium$getStorage()
+        this.database
                 .getTransaction(PlayerDatabaseSpecs.ADVANCEMENTS)
                 .add(this.player.getUUID(), writer.toString());
     }
