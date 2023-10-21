@@ -9,11 +9,13 @@ import org.lmdbjava.Env;
 import org.lmdbjava.EnvFlags;
 import org.lmdbjava.EnvInfo;
 import org.lmdbjava.LmdbException;
+import org.lmdbjava.Stat;
 import org.lmdbjava.Txn;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class LMDBInstance {
@@ -158,6 +160,21 @@ public class LMDBInstance {
         if (CesiumMod.config().getMapGrow().getLog()) {
             CesiumMod.logger().info("Grew map size from {} to {} MB", (oldSize / 1024 / 1024), (newSize / 1024 / 1024));
         }
+    }
+
+    public List<Stat> getStats() {
+        this.lock.readLock()
+                .lock();
+
+        try {
+            return this.databases.values().stream()
+                    .map(KVDatabase::getStats)
+                    .toList();
+        } finally {
+            this.lock.readLock()
+                    .unlock();
+        }
+
     }
 
     ReentrantReadWriteLock getLock() {
