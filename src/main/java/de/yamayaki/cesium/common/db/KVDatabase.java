@@ -10,6 +10,7 @@ import org.lmdbjava.Cursor;
 import org.lmdbjava.Dbi;
 import org.lmdbjava.DbiFlags;
 import org.lmdbjava.Env;
+import org.lmdbjava.Stat;
 import org.lmdbjava.Txn;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -126,6 +127,11 @@ public class KVDatabase<K, V> {
     public Cursor<byte[]> getIterator() {
         return this.dbi.openCursor(this.env.txnRead());
     }
+
+    public Stat getStats() {
+        return this.dbi.stat(this.env.txnRead());
+    }
+
 
     public void close() {
         this.dbi.close();

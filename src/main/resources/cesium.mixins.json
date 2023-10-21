@@ -22,6 +22,7 @@
     "defaultRequire": 1
   },
   "client": [
-    "converter.MixinEditWorldScreen"
+    "gui.MixinDebugScreenOverlay",
+    "gui.MixinEditWorldScreen"
   ]
 }

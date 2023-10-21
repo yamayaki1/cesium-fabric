@@ -1,4 +1,4 @@
-package de.yamayaki.cesium.mixin.converter;
+package de.yamayaki.cesium.mixin.gui;
 
 import de.yamayaki.cesium.converter.WorldConverter;
 import de.yamayaki.cesium.converter.gui.ConvertWorldScreen;
