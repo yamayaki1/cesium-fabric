@@ -85,7 +85,7 @@ public abstract class MixinPlayerAdvancements implements DatabaseSetter {
         return new StringWriter();
     }
 
-    @Inject(method = "save", at = @At(value = "INVOKE", target = "Lcom/google/gson/Gson;toJson(Lcom/google/gson/JsonElement;Ljava/lang/Appendable;)V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD, remap = false)
+    @Inject(method = "save", at = @At(value = "INVOKE", target = "Lcom/google/gson/Gson;toJson(Lcom/google/gson/JsonElement;Ljava/lang/Appendable;)V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
     private void saveStringWriterContent(CallbackInfo ci, JsonElement jsonElement, Writer writer) {
         this.database
                 .getTransaction(PlayerDatabaseSpecs.ADVANCEMENTS)
