@@ -70,7 +70,7 @@ public abstract class MixinServerStatsCounter extends StatsCounter implements Da
         }
     }
 
-    @Redirect(method = "save", at = @At(value = "INVOKE", target = "Lorg/apache/commons/io/FileUtils;writeStringToFile(Ljava/io/File;Ljava/lang/String;)V"), remap = false)
+    @Redirect(method = "save", at = @At(value = "INVOKE", target = "Lorg/apache/commons/io/FileUtils;writeStringToFile(Ljava/io/File;Ljava/lang/String;)V"))
     public void redirectWrite(File file, String data) {
         this.database
                 .getTransaction(PlayerDatabaseSpecs.STATISTICS)
