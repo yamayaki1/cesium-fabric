@@ -4,6 +4,7 @@ import de.yamayaki.cesium.CesiumMod;
 import de.yamayaki.cesium.converter.ConvHelper;
 import de.yamayaki.cesium.converter.IPlayerStorage;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 
 import java.io.File;
@@ -63,7 +64,7 @@ public class AnvilPlayerStorage implements IPlayerStorage {
         try {
             final File saveFile = new File(this.playerData.toFile(), uuid.toString() + ".dat");
             if (saveFile.exists() && saveFile.isFile()) {
-                compoundTag = NbtIo.readCompressed(saveFile);
+                compoundTag = NbtIo.readCompressed(saveFile, NbtAccounter.unlimitedHeap());
             }
         } catch (IOException exception) {
             CesiumMod.logger().warn("[ANVIL] Failed to load player data for {}", uuid);

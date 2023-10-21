@@ -1,20 +1,25 @@
 package de.yamayaki.cesium.converter;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.mojang.logging.LogUtils;
 import de.yamayaki.cesium.converter.formats.anvil.AnvilChunkStorage;
 import de.yamayaki.cesium.converter.formats.anvil.AnvilPlayerStorage;
 import de.yamayaki.cesium.converter.formats.cesium.CesiumChunkStorage;
 import de.yamayaki.cesium.converter.formats.cesium.CesiumPlayerStorage;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.WorldStem;
+import net.minecraft.server.packs.repository.ServerPacksSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.storage.LevelStorageSource;
+import org.slf4j.Logger;
 
 import java.nio.file.Path;
 import java.util.Iterator;
@@ -22,6 +27,8 @@ import java.util.List;
 import java.util.UUID;
 
 public class WorldConverter {
+    private final Logger LOGGER = LogUtils.getLogger();
+
     private final Thread thread;
 
     private final Format newFormat;
@@ -45,7 +52,7 @@ public class WorldConverter {
         this.playerDataPath = levelAccess.getDimensionPath(Level.OVERWORLD);
         this.levelAccess = levelAccess;
 
-        try (WorldStem worldStem = minecraft.createWorldOpenFlows().loadWorldStem(levelAccess, false)) {
+        try (WorldStem worldStem = minecraft.createWorldOpenFlows().loadWorldStem(levelAccess.getDataTag(), false, ServerPacksSource.createPackRepository(levelAccess))) {
             RegistryAccess.Frozen frozen = worldStem.registries().compositeAccess();
             levelAccess.saveDataTag(frozen, worldStem.worldData());
 
@@ -58,6 +65,8 @@ public class WorldConverter {
         this.status = "cesium.converter.loading";
         this.thread = new ThreadFactoryBuilder().setDaemon(true).build().newThread(this::work);
         this.thread.setUncaughtExceptionHandler((thread, throwable) -> {
+            minecraft.getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_ACCESS_FAILURE, Component.literal("Cesium error"), Component.literal("Could not convert world, see logs for more information.")));
+            LOGGER.error("Uncaught exception while converting world!", throwable);
             this.status = "cesium.converter.failed";
             this.finished = true;
         });

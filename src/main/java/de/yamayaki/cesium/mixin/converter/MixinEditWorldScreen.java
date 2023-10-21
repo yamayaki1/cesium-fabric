@@ -4,6 +4,7 @@ import de.yamayaki.cesium.converter.WorldConverter;
 import de.yamayaki.cesium.converter.gui.ConvertWorldScreen;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.worldselection.EditWorldScreen;
 import net.minecraft.network.chat.Component;
@@ -25,18 +26,26 @@ public abstract class MixinEditWorldScreen extends Screen {
     @Final
     private BooleanConsumer callback;
 
+    @Shadow
+    @Final
+    private LinearLayout layout;
+
     protected MixinEditWorldScreen(Component component) {
         super(component);
     }
 
-    @Inject(method = "init", at = @At("RETURN"))
+    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/layouts/LinearLayout;addChild(Lnet/minecraft/client/gui/layouts/LayoutElement;)Lnet/minecraft/client/gui/layouts/LayoutElement;", ordinal = 9))
     public void reInit(CallbackInfo ci) {
-        this.addRenderableWidget(Button.builder(Component.literal("Anvil → Cesium"), buttonx -> {
-            this.minecraft.setScreen(new ConvertWorldScreen(WorldConverter.Format.TO_CESIUM, this.minecraft, this.levelAccess, this.callback));
-        }).bounds(this.width / 2 - 100, this.height / 4 + 168 + 5, 98, 20).build());
+        LinearLayout linearLayout = LinearLayout.horizontal();
 
-        this.addRenderableWidget(Button.builder(Component.literal("Cesium → Anvil"), buttonx -> {
+        linearLayout.addChild(Button.builder(Component.literal("Anvil → Cesium"), buttonx -> {
+            this.minecraft.setScreen(new ConvertWorldScreen(WorldConverter.Format.TO_CESIUM, this.minecraft, this.levelAccess, this.callback));
+        }).width(100).build());
+
+        linearLayout.addChild(Button.builder(Component.literal("Cesium → Anvil"), buttonx -> {
             this.minecraft.setScreen(new ConvertWorldScreen(WorldConverter.Format.TO_ANVIL, this.minecraft, this.levelAccess, this.callback));
-        }).bounds(this.width / 2 + 2, this.height / 4 + 168 + 5, 98, 20).build());
+        }).width(100).build());
+
+        this.layout.addChild(linearLayout);
     }
 }

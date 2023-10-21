@@ -1,8 +1,8 @@
 package de.yamayaki.cesium.mixin.core.upgrader;
 
 import com.google.common.collect.ImmutableMap;
-import de.yamayaki.cesium.accessor.DatabaseSetter;
 import de.yamayaki.cesium.accessor.DatabaseActions;
+import de.yamayaki.cesium.accessor.DatabaseSetter;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import de.yamayaki.cesium.common.db.spec.impl.WorldDatabaseSpecs;
