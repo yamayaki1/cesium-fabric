@@ -16,7 +16,7 @@ public class CesiumPlayerStorage implements IPlayerStorage {
     private final LMDBInstance database;
 
     public CesiumPlayerStorage(final Path basePath) {
-        this.database = new LMDBInstance(basePath.toFile(), "players", new DatabaseSpec[]{
+        this.database = new LMDBInstance(basePath, "players", new DatabaseSpec[]{
                 PlayerDatabaseSpecs.PLAYER_DATA,
                 PlayerDatabaseSpecs.ADVANCEMENTS,
                 PlayerDatabaseSpecs.STATISTICS

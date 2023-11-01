@@ -12,15 +12,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
 @Mixin(IOWorker.class)
 public class ChunkExporterMixin {
     @Unique
-    private static final File basePath = new File(".", "exportedChunks/");
+    private static final Path basePath = Path.of("./exportedChunks/");
 
     static {
-        if (!basePath.exists() && !basePath.isDirectory() && !basePath.mkdirs()) {
+        try {
+            if(!Files.isDirectory(basePath)) {
+                Files.createDirectories(basePath);
+            }
+        } catch (IOException e) {
             throw new IllegalStateException("This should not have happened");
         }
     }
@@ -32,7 +38,7 @@ public class ChunkExporterMixin {
                 return;
             }
 
-            NbtIo.write(compoundTag, new File(basePath, chunkPos.toLong() + ".nbt"));
+            NbtIo.write(compoundTag, basePath.resolve(chunkPos.toLong() + ".nbt"));
         } catch (IOException ignored) {
         }
     }

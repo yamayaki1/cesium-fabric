@@ -18,7 +18,7 @@ public class CesiumChunkStorage implements IChunkStorage {
     private final LMDBInstance database;
 
     public CesiumChunkStorage(final Path basePath) {
-        this.database = new LMDBInstance(basePath.toFile(), "chunks", new DatabaseSpec[]{
+        this.database = new LMDBInstance(basePath, "chunks", new DatabaseSpec[]{
                 WorldDatabaseSpecs.CHUNK_DATA,
                 WorldDatabaseSpecs.POI,
                 WorldDatabaseSpecs.ENTITY

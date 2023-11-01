@@ -44,7 +44,7 @@ public class MixinWorldUpgrader {
     @Inject(method = "work", at = @At(value = "INVOKE", target = "Lnet/minecraft/Util;getMillis()J", shift = At.Shift.BEFORE), locals = LocalCapture.CAPTURE_FAILHARD)
     private void injectDatabase(CallbackInfo ci, ImmutableMap.Builder builder, float f, ImmutableMap immutableMap, ImmutableMap.Builder builder2, ImmutableMap immutableMap2) {
         for (Map.Entry<ResourceKey<Level>, ChunkStorage> resourceKeyChunkStorageEntry : ((ImmutableMap<ResourceKey<Level>, ChunkStorage>) immutableMap2).entrySet()) {
-            final LMDBInstance database = new LMDBInstance(this.levelStorage.getDimensionPath(resourceKeyChunkStorageEntry.getKey()).toFile(), "chunks", new DatabaseSpec[]{
+            final LMDBInstance database = new LMDBInstance(this.levelStorage.getDimensionPath(resourceKeyChunkStorageEntry.getKey()), "chunks", new DatabaseSpec[]{
                     WorldDatabaseSpecs.CHUNK_DATA,
                     WorldDatabaseSpecs.POI,
                     WorldDatabaseSpecs.ENTITY

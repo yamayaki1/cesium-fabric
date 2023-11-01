@@ -39,9 +39,9 @@ public class MixinPlayerList implements DatabaseSource {
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void initCesiumPlayers(MinecraftServer minecraftServer, LayeredRegistryAccess<?> layeredRegistryAccess, PlayerDataStorage playerDataStorage, int i, CallbackInfo ci) {
-        File dir = minecraftServer.getWorldPath(LevelResource.PLAYER_ADVANCEMENTS_DIR).getParent().toFile();
+        final Path path = minecraftServer.getWorldPath(LevelResource.PLAYER_ADVANCEMENTS_DIR).getParent();
 
-        this.database = new LMDBInstance(dir, "players", new DatabaseSpec[]{
+        this.database = new LMDBInstance(path, "players", new DatabaseSpec[]{
                 PlayerDatabaseSpecs.PLAYER_DATA,
                 PlayerDatabaseSpecs.ADVANCEMENTS,
                 PlayerDatabaseSpecs.STATISTICS

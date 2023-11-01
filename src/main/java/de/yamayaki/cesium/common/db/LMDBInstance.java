@@ -13,6 +13,9 @@ import org.lmdbjava.Stat;
 import org.lmdbjava.Txn;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -28,16 +31,18 @@ public class LMDBInstance {
     protected final int maxCommitTries = 3;
     protected final int resizeStep;
 
-    public LMDBInstance(File dir, String name, DatabaseSpec<?, ?>[] databases) {
-        if (!dir.isDirectory() && !dir.mkdirs()) {
-            throw new RuntimeException("Couldn't create directory: " + dir);
+    public LMDBInstance(Path dir, String name, DatabaseSpec<?, ?>[] databases) {
+        if(!Files.isDirectory(dir)) {
+            try {
+                Files.createDirectories(dir);
+            } catch (IOException ioException) {
+                throw new RuntimeException("Failed to create directory.", ioException);
+            }
         }
-
-        File file = new File(dir, name + ".db");
 
         this.env = Env.create(ByteArrayProxy.PROXY_BA)
                 .setMaxDbs(databases.length)
-                .open(file, EnvFlags.MDB_NOLOCK, EnvFlags.MDB_NOSUBDIR);
+                .open(dir.resolve(name+".db").toFile(), EnvFlags.MDB_NOLOCK, EnvFlags.MDB_NOSUBDIR);
 
         this.resizeStep = Arrays.stream(databases).mapToInt(DatabaseSpec::getInitialSize).sum();
 

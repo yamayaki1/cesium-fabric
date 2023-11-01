@@ -28,7 +28,7 @@ public class MixinServerLevel implements DatabaseSource {
 
     @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getFixerUpper()Lcom/mojang/datafixers/DataFixer;", shift = At.Shift.AFTER))
     public void initCesiumChunkStorage(MinecraftServer minecraftServer, Executor executor, LevelStorageSource.LevelStorageAccess levelStorageAccess, ServerLevelData serverLevelData, ResourceKey resourceKey, LevelStem levelStem, ChunkProgressListener chunkProgressListener, boolean bl, long l, List list, boolean bl2, RandomSequences randomSequences, CallbackInfo ci) {
-        this.database = new LMDBInstance(levelStorageAccess.getDimensionPath(resourceKey).toFile(), "chunks", new DatabaseSpec[]{
+        this.database = new LMDBInstance(levelStorageAccess.getDimensionPath(resourceKey), "chunks", new DatabaseSpec[]{
                 WorldDatabaseSpecs.CHUNK_DATA,
                 WorldDatabaseSpecs.POI,
                 WorldDatabaseSpecs.ENTITY

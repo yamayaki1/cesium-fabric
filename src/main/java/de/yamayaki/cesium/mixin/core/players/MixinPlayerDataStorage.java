@@ -16,6 +16,8 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
 
 @Debug(export = true)
 @Mixin(PlayerDataStorage.class)
@@ -48,20 +50,20 @@ public class MixinPlayerDataStorage implements DatabaseSetter {
                 .getValue(this.player.getUUID());
     }
 
-    @Redirect(method = "save", at = @At(value = "INVOKE", target = "Ljava/io/File;createTempFile(Ljava/lang/String;Ljava/lang/String;Ljava/io/File;)Ljava/io/File;"))
-    public File disableFileCreation(String se, String prefix, File suffix) {
+    @Redirect(method = "save", at = @At(value = "INVOKE", target = "Ljava/nio/file/Files;createTempFile(Ljava/nio/file/Path;Ljava/lang/String;Ljava/lang/String;[Ljava/nio/file/attribute/FileAttribute;)Ljava/nio/file/Path;"))
+    public Path disableFileCreation(Path path, String a, String b, FileAttribute[] fileAttributes) {
         return null;
     }
 
-    @Redirect(method = "save", at = @At(value = "INVOKE", target = "Lnet/minecraft/nbt/NbtIo;writeCompressed(Lnet/minecraft/nbt/CompoundTag;Ljava/io/File;)V"))
-    public void redirectWrite(CompoundTag compoundTag, File file) {
+    @Redirect(method = "save", at = @At(value = "INVOKE", target = "Lnet/minecraft/nbt/NbtIo;writeCompressed(Lnet/minecraft/nbt/CompoundTag;Ljava/nio/file/Path;)V"))
+    public void redirectWrite(CompoundTag compoundTag, Path path) {
         this.database
                 .getTransaction(PlayerDatabaseSpecs.PLAYER_DATA)
                 .add(compoundTag.getUUID("UUID"), compoundTag);
     }
 
-    @Redirect(method = "save", at = @At(value = "INVOKE", target = "Lnet/minecraft/Util;safeReplaceFile(Ljava/io/File;Ljava/io/File;Ljava/io/File;)V"))
-    public void disableFileMove(File file, File file2, File file3) {
+    @Redirect(method = "save", at = @At(value = "INVOKE", target = "Lnet/minecraft/Util;safeReplaceFile(Ljava/nio/file/Path;Ljava/nio/file/Path;Ljava/nio/file/Path;)V"))
+    public void disableFileMove(Path path, Path path2, Path path3) {
         // Do nothing
     }
 }

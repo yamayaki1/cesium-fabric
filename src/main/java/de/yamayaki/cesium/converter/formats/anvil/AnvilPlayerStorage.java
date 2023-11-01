@@ -9,6 +9,7 @@ import net.minecraft.nbt.NbtIo;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
@@ -46,12 +47,13 @@ public class AnvilPlayerStorage implements IPlayerStorage {
         }
 
         try {
-            final File saveFile = new File(this.playerData.toFile(), uuid.toString() + ".dat");
-            if (!saveFile.exists() && !saveFile.getParentFile().mkdirs() && !saveFile.createNewFile()) {
-                throw new RuntimeException("Unable to create file " + saveFile);
+            final Path savePath = this.playerData.resolve(uuid.toString() + ".dat");
+            if (!Files.isDirectory(savePath.getParent()) || !Files.isRegularFile(savePath)) {
+                Files.createDirectories(savePath.getParent());
+                Files.createFile(savePath);
             }
 
-            NbtIo.writeCompressed(compoundTag, saveFile);
+            NbtIo.writeCompressed(compoundTag, savePath);
         } catch (IOException exception) {
             CesiumMod.logger().warn("[ANVIL] Failed to save player data for {}", uuid);
         }
@@ -62,9 +64,9 @@ public class AnvilPlayerStorage implements IPlayerStorage {
         CompoundTag compoundTag = null;
 
         try {
-            final File saveFile = new File(this.playerData.toFile(), uuid.toString() + ".dat");
-            if (saveFile.exists() && saveFile.isFile()) {
-                compoundTag = NbtIo.readCompressed(saveFile, NbtAccounter.unlimitedHeap());
+            final Path savePath = this.playerData.resolve(uuid.toString() + ".dat");
+            if (Files.isRegularFile(savePath)) {
+                compoundTag = NbtIo.readCompressed(savePath, NbtAccounter.unlimitedHeap());
             }
         } catch (IOException exception) {
             CesiumMod.logger().warn("[ANVIL] Failed to load player data for {}", uuid);
