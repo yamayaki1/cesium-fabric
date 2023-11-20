@@ -65,7 +65,7 @@ public class WorldConverter {
         this.status = "cesium.converter.loading";
         this.thread = new ThreadFactoryBuilder().setDaemon(true).build().newThread(this::work);
         this.thread.setUncaughtExceptionHandler((thread, throwable) -> {
-            minecraft.getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_ACCESS_FAILURE, Component.literal("Cesium error"), Component.literal("Could not convert world, see logs for more information.")));
+            minecraft.getToasts().addToast(new SystemToast(SystemToast.SystemToastId.WORLD_ACCESS_FAILURE, Component.literal("Cesium error"), Component.literal("Could not convert world, see logs for more information.")));
             LOGGER.error("Uncaught exception while converting world!", throwable);
             this.status = "cesium.converter.failed";
             this.finished = true;
