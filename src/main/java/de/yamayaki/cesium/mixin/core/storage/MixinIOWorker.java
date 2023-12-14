@@ -17,12 +17,9 @@ import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -52,10 +49,8 @@ public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSett
     @Unique
     private DatabaseSpec<ChunkPos, CompoundTag> databaseSpec;
 
-    @Inject(method = "<init>", at = @At("RETURN"))
-    public void disableRegionFile(Path path, boolean bl, String string, CallbackInfo ci) throws IOException {
-        this.storage.close();
-    }
+    @Unique
+    private boolean isCesium = false;
 
     /**
      * @author Yamayaki
@@ -69,9 +64,14 @@ public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSett
                 return Either.left(Optional.ofNullable(pendingStore.data));
             } else {
                 try {
-                    CompoundTag compoundTag = this.lmdbStorage
-                            .getDatabase(this.databaseSpec)
-                            .getValue(chunkPos);
+                    CompoundTag compoundTag;
+                    if (this.isCesium) {
+                        compoundTag = this.lmdbStorage
+                                .getDatabase(this.databaseSpec)
+                                .getValue(chunkPos);
+                    } else {
+                        compoundTag = this.storage.read(chunkPos);
+                    }
 
                     return Either.left(Optional.ofNullable(compoundTag));
                 } catch (Exception var4) {
@@ -88,14 +88,25 @@ public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSett
      */
     @Overwrite
     public CompletableFuture<Void> synchronize(boolean bl) {
-        return this.submitTask(() -> Either.left(
+        CompletableFuture<Void> completableFuture = this.submitTask(() -> Either.left(
                 CompletableFuture.allOf(
-                        this.pendingWrites.values()
-                                .stream()
-                                .map(pendingStore -> pendingStore.result)
-                                .toArray(CompletableFuture[]::new)
-                )
+                        this.pendingWrites.values().stream()
+                                .map((pendingStore) -> pendingStore.result)
+                                .toArray(CompletableFuture[]::new))
         )).thenCompose(Function.identity());
+
+        return bl ? completableFuture.thenCompose((void_) -> this.submitTask(() -> {
+            try {
+                if (!this.isCesium) {
+                    this.storage.flush();
+                }
+
+                return Either.left(null);
+            } catch (Exception var2) {
+                LOGGER.warn("Failed to synchronize chunks", var2);
+                return Either.right(var2);
+            }
+        })) : completableFuture.thenCompose((void_) -> this.submitTask(() -> Either.left(null)));
     }
 
     /**
@@ -112,9 +123,11 @@ public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSett
                         pendingStore.data.acceptAsRoot(streamTagVisitor);
                     }
                 } else {
-                    this.lmdbStorage
-                            .getDatabase(this.databaseSpec)
-                            .scan(chunkPos, streamTagVisitor);
+                    if (this.isCesium) {
+                        this.lmdbStorage.getDatabase(this.databaseSpec).scan(chunkPos, streamTagVisitor);
+                    } else {
+                        this.storage.scanChunk(chunkPos, streamTagVisitor);
+                    }
                 }
 
                 return Either.left(null);
@@ -126,23 +139,34 @@ public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSett
     }
 
     @Redirect(method = "runStore", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/RegionFileStorage;write(Lnet/minecraft/world/level/ChunkPos;Lnet/minecraft/nbt/CompoundTag;)V"))
-    private void cesium$write(RegionFileStorage instance, ChunkPos chunkPos, CompoundTag compoundTag) {
-        this.lmdbStorage
-                .getTransaction(this.databaseSpec)
-                .add(chunkPos, compoundTag);
+    private void cesium$write(RegionFileStorage instance, ChunkPos chunkPos, CompoundTag compoundTag) throws IOException {
+        if (this.isCesium) {
+            this.lmdbStorage.getTransaction(this.databaseSpec).add(chunkPos, compoundTag);
+        } else {
+            this.storage.write(chunkPos, compoundTag);
+        }
     }
 
     @Redirect(method = "close", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/RegionFileStorage;close()V"))
-    private void cesium$close(RegionFileStorage instance) {
-        // Do nothing
+    private void cesium$close(RegionFileStorage instance) throws IOException {
+        if (!this.isCesium) {
+            this.storage.close();
+        }
     }
 
     @Override
     public void cesium$setStorage(LMDBInstance lmdbInstance) {
+        this.isCesium = true;
         this.lmdbStorage = lmdbInstance;
+
+        try {
+            this.storage.close();
+        } catch (IOException ignored) {
+        }
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void cesium$setSpec(DatabaseSpec<?, ?> databaseSpec) {
         this.databaseSpec = (DatabaseSpec<ChunkPos, CompoundTag>) databaseSpec;
     }
