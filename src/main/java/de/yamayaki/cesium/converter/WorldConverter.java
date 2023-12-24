@@ -6,6 +6,7 @@ import de.yamayaki.cesium.converter.formats.anvil.AnvilChunkStorage;
 import de.yamayaki.cesium.converter.formats.anvil.AnvilPlayerStorage;
 import de.yamayaki.cesium.converter.formats.cesium.CesiumChunkStorage;
 import de.yamayaki.cesium.converter.formats.cesium.CesiumPlayerStorage;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.core.Registry;
@@ -22,9 +23,11 @@ import net.minecraft.world.level.storage.LevelStorageSource;
 import org.slf4j.Logger;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class WorldConverter {
     private final Logger LOGGER = LogUtils.getLogger();
@@ -130,17 +133,29 @@ public class WorldConverter {
         this.progressTotal = chunkList.size();
         this.progressCurrent = 0;
 
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+        int currentChunk = 0;
+
         while (this.running && iterator.hasNext()) {
-            this.progressCurrent++;
             ChunkPos chunkPos = iterator.next();
+            futures.add(
+                    CompletableFuture.runAsync(() -> {
+                        newStorage.setChunkData(chunkPos, originalStorage.getChunkData(chunkPos));
+                        newStorage.setPOIData(chunkPos, originalStorage.getPOIData(chunkPos));
+                        newStorage.setEntityData(chunkPos, originalStorage.getEntityData(chunkPos));
 
-            newStorage.setChunkData(chunkPos, originalStorage.getChunkData(chunkPos));
-            newStorage.setPOIData(chunkPos, originalStorage.getPOIData(chunkPos));
-            newStorage.setEntityData(chunkPos, originalStorage.getEntityData(chunkPos));
+                        this.progressCurrent++;
+                    }, Util.backgroundExecutor())
+            );
 
-            if (this.progressCurrent % 10240 == 0) {
+            currentChunk++;
+
+            if (currentChunk % 10240 == 0) {
+                CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
                 this.status = "Flushing data ...";
                 newStorage.flush();
+                futures.clear();
                 this.status = "Converting chunk data";
             }
         }

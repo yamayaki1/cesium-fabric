@@ -85,7 +85,7 @@ public class AnvilChunkStorage implements IChunkStorage {
     }
 
     @Override
-    public void setChunkData(final ChunkPos chunkPos, final CompoundTag compoundTag) {
+    public synchronized void setChunkData(final ChunkPos chunkPos, final CompoundTag compoundTag) {
         try {
             this.chunkData.write(chunkPos, compoundTag);
         } catch (IOException e) {
@@ -94,7 +94,7 @@ public class AnvilChunkStorage implements IChunkStorage {
     }
 
     @Override
-    public CompoundTag getChunkData(final ChunkPos chunkPos) {
+    public synchronized CompoundTag getChunkData(final ChunkPos chunkPos) {
         try {
             return this.chunkData.read(chunkPos);
         } catch (IOException e) {
@@ -103,7 +103,7 @@ public class AnvilChunkStorage implements IChunkStorage {
     }
 
     @Override
-    public void setPOIData(final ChunkPos chunkPos, final CompoundTag compoundTag) {
+    public synchronized void setPOIData(final ChunkPos chunkPos, final CompoundTag compoundTag) {
         try {
             this.poiData.write(chunkPos, compoundTag);
         } catch (IOException e) {
@@ -112,7 +112,7 @@ public class AnvilChunkStorage implements IChunkStorage {
     }
 
     @Override
-    public CompoundTag getPOIData(final ChunkPos chunkPos) {
+    public synchronized CompoundTag getPOIData(final ChunkPos chunkPos) {
         try {
             return this.poiData.read(chunkPos);
         } catch (IOException e) {
@@ -121,7 +121,7 @@ public class AnvilChunkStorage implements IChunkStorage {
     }
 
     @Override
-    public void setEntityData(final ChunkPos chunkPos, final CompoundTag compoundTag) {
+    public synchronized void setEntityData(final ChunkPos chunkPos, final CompoundTag compoundTag) {
         try {
             this.entityData.write(chunkPos, compoundTag);
         } catch (IOException e) {
@@ -130,7 +130,7 @@ public class AnvilChunkStorage implements IChunkStorage {
     }
 
     @Override
-    public CompoundTag getEntityData(final ChunkPos chunkPos) {
+    public synchronized CompoundTag getEntityData(final ChunkPos chunkPos) {
         try {
             return this.entityData.read(chunkPos);
         } catch (IOException e) {
