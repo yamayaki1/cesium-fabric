@@ -1,32 +1,30 @@
 package de.yamayaki.cesium.mixin.core.players;
 
+import com.llamalad7.mixinextras.sugar.Share;
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import de.yamayaki.cesium.accessor.DatabaseSetter;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.impl.PlayerDatabaseSpecs;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.storage.PlayerDataStorage;
-import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
+import java.util.Optional;
 
-@Debug(export = true)
 @Mixin(PlayerDataStorage.class)
 public class MixinPlayerDataStorage implements DatabaseSetter {
     @Unique
     private LMDBInstance database;
-
-    @Unique
-    private Player player;
 
     @Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Ljava/io/File;mkdirs()Z"))
     private boolean disableMkdirs(File file) {
@@ -38,16 +36,26 @@ public class MixinPlayerDataStorage implements DatabaseSetter {
         this.database = storage;
     }
 
-    @Inject(method = "load", at = @At("HEAD"))
-    public void setPlayer(Player player, CallbackInfoReturnable<CompoundTag> cir) {
-        this.player = player;
+    @Redirect(method = "load(Lnet/minecraft/world/entity/player/Player;Ljava/lang/String;)Ljava/util/Optional;", at = @At(value = "INVOKE", target = "Ljava/io/File;exists()Z"))
+    public boolean redirectFileExists(File instance) {
+        return true;
     }
 
-    @ModifyVariable(method = "load", at = @At(value = "STORE"))
-    private CompoundTag loadNbt(CompoundTag compoundTag) {
+    @Redirect(method = "load(Lnet/minecraft/world/entity/player/Player;Ljava/lang/String;)Ljava/util/Optional;", at = @At(value = "INVOKE", target = "Ljava/io/File;isFile()Z"))
+    public boolean redirectFileIsFile(File instance) {
+        return true;
+    }
+
+    @Inject(method = "load(Lnet/minecraft/world/entity/player/Player;Ljava/lang/String;)Ljava/util/Optional;", at = @At("HEAD"))
+    public void setPlayerToLoad(Player player, String string, CallbackInfoReturnable<Optional<CompoundTag>> cir, @Share("player") LocalRef<Player> sharedPlayer) {
+        sharedPlayer.set(player);
+    }
+
+    @Redirect(method = "load(Lnet/minecraft/world/entity/player/Player;Ljava/lang/String;)Ljava/util/Optional;", at = @At(value = "INVOKE", target = "Lnet/minecraft/nbt/NbtIo;readCompressed(Ljava/nio/file/Path;Lnet/minecraft/nbt/NbtAccounter;)Lnet/minecraft/nbt/CompoundTag;"))
+    public CompoundTag redirectPlayerLoad(Path path, NbtAccounter nbtAccounter, @Share("player") LocalRef<Player> player) {
         return this.database
                 .getDatabase(PlayerDatabaseSpecs.PLAYER_DATA)
-                .getValue(this.player.getUUID());
+                .getValue(player.get().getUUID());
     }
 
     @Redirect(method = "save", at = @At(value = "INVOKE", target = "Ljava/nio/file/Files;createTempFile(Ljava/nio/file/Path;Ljava/lang/String;Ljava/lang/String;[Ljava/nio/file/attribute/FileAttribute;)Ljava/nio/file/Path;"))

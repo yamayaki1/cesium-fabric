@@ -1,38 +1,11 @@
 package de.yamayaki.cesium.mixin.core.upgrader;
 
-import com.google.common.collect.ImmutableMap;
-import de.yamayaki.cesium.accessor.DatabaseActions;
-import de.yamayaki.cesium.accessor.DatabaseSetter;
-import de.yamayaki.cesium.common.db.LMDBInstance;
-import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
-import de.yamayaki.cesium.common.db.spec.impl.WorldDatabaseSpecs;
-import de.yamayaki.cesium.converter.formats.cesium.CesiumChunkStorage;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.worldupdate.WorldUpgrader;
-import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.chunk.storage.ChunkStorage;
-import net.minecraft.world.level.storage.LevelStorageSource;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-
-@SuppressWarnings({"rawtypes", "unchecked"})
 @Mixin(WorldUpgrader.class)
 public class MixinWorldUpgrader {
-    @Shadow
-    @Final
+/*    @Final
     private LevelStorageSource.LevelStorageAccess levelStorage;
 
     @Shadow
@@ -42,7 +15,7 @@ public class MixinWorldUpgrader {
     private volatile int skipped;
 
     @Inject(method = "work", at = @At(value = "INVOKE", target = "Lnet/minecraft/Util;getMillis()J", shift = At.Shift.BEFORE), locals = LocalCapture.CAPTURE_FAILHARD)
-    private void injectDatabase(CallbackInfo ci, ImmutableMap.Builder builder, float f, ImmutableMap immutableMap, ImmutableMap.Builder builder2, ImmutableMap immutableMap2) {
+    private void injectDatabase(CallbackInfo ci) {
         for (Map.Entry<ResourceKey<Level>, ChunkStorage> resourceKeyChunkStorageEntry : ((ImmutableMap<ResourceKey<Level>, ChunkStorage>) immutableMap2).entrySet()) {
             final LMDBInstance database = new LMDBInstance(this.levelStorage.getDimensionPath(resourceKeyChunkStorageEntry.getKey()), "chunks", new DatabaseSpec[]{
                     WorldDatabaseSpecs.CHUNK_DATA,
@@ -64,18 +37,18 @@ public class MixinWorldUpgrader {
     @Redirect(method = "work", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/ChunkStorage;close()V"))
     private void closeDatabase(ChunkStorage instance) {
         ((DatabaseActions) instance).cesium$close();
-    }
+    }*/
 
     /**
      * @author Yamayaki
      * @reason Cesium
      */
-    @Overwrite
+    /*@Overwrite
     private List<ChunkPos> getAllChunkPos(ResourceKey<Level> resourceKey) {
         final CesiumChunkStorage chunkStorage = new CesiumChunkStorage(this.levelStorage.getDimensionPath(resourceKey));
         final List<ChunkPos> chunkList = chunkStorage.getAllChunks();
 
         chunkStorage.close();
         return chunkList;
-    }
+    }*/
 }
