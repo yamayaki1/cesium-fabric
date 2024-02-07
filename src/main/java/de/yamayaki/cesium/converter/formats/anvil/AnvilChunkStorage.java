@@ -6,6 +6,7 @@ import de.yamayaki.cesium.converter.IChunkStorage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.storage.RegionFileStorage;
+import net.minecraft.world.level.chunk.storage.RegionStorageInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,9 +28,9 @@ public class AnvilChunkStorage implements IChunkStorage {
     public AnvilChunkStorage(final Path basePath) {
         this.basePath = basePath;
 
-        this.chunkData = new RegionFileStorage(basePath.resolve("region"), false);
-        this.poiData = new RegionFileStorage(basePath.resolve("poi"), false);
-        this.entityData = new RegionFileStorage(basePath.resolve("entities"), false);
+        this.chunkData = new RegionFileStorage(new RegionStorageInfo("cesium", null, "region"), basePath.resolve("region"), false);
+        this.poiData = new RegionFileStorage(new RegionStorageInfo("cesium", null, "poi"), basePath.resolve("poi"), false);
+        this.entityData = new RegionFileStorage(new RegionStorageInfo("cesium", null, "entities"), basePath.resolve("entities"), false);
     }
 
     @Override
