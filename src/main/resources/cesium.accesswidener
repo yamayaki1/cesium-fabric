@@ -10,5 +10,6 @@ accessible field net/minecraft/world/level/chunk/storage/IOWorker$PendingStore r
 
 accessible class net/minecraft/util/worldupdate/WorldUpgrader$AbstractUpgrader
 accessible class net/minecraft/util/worldupdate/WorldUpgrader$DimensionToUpgrade
+accessible field net/minecraft/util/worldupdate/WorldUpgrader$DimensionToUpgrade storage Ljava/lang/Object;
 accessible class net/minecraft/util/worldupdate/WorldUpgrader$FileToUpgrade
 accessible method net/minecraft/util/worldupdate/WorldUpgrader$FileToUpgrade <init> (Lnet/minecraft/world/level/chunk/storage/RegionFile;Ljava/util/List;)V

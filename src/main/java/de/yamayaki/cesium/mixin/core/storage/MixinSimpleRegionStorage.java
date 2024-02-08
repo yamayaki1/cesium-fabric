@@ -1,5 +1,6 @@
 package de.yamayaki.cesium.mixin.core.storage;
 
+import de.yamayaki.cesium.accessor.DatabaseActions;
 import de.yamayaki.cesium.accessor.DatabaseSetter;
 import de.yamayaki.cesium.accessor.SpecificationSetter;
 import de.yamayaki.cesium.common.db.LMDBInstance;
@@ -11,7 +12,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(SimpleRegionStorage.class)
-public class MixinSimpleRegionStorage implements DatabaseSetter, SpecificationSetter {
+public class MixinSimpleRegionStorage implements DatabaseSetter, SpecificationSetter, DatabaseActions {
     @Shadow
     @Final
     private IOWorker worker;
@@ -24,5 +25,15 @@ public class MixinSimpleRegionStorage implements DatabaseSetter, SpecificationSe
     @Override
     public void cesium$setSpec(DatabaseSpec<?, ?> databaseSpec) {
         ((SpecificationSetter) this.worker).cesium$setSpec(databaseSpec);
+    }
+
+    @Override
+    public void cesium$flush() {
+        ((DatabaseActions) this.worker).cesium$flush();
+    }
+
+    @Override
+    public void cesium$close() {
+        ((DatabaseActions) this.worker).cesium$close();
     }
 }

@@ -1,6 +1,7 @@
 package de.yamayaki.cesium.mixin.core.storage;
 
 import com.mojang.datafixers.util.Either;
+import de.yamayaki.cesium.accessor.DatabaseActions;
 import de.yamayaki.cesium.accessor.DatabaseSetter;
 import de.yamayaki.cesium.accessor.SpecificationSetter;
 import de.yamayaki.cesium.common.db.LMDBInstance;
@@ -27,7 +28,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Mixin(IOWorker.class)
-public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSetter {
+public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSetter, DatabaseActions {
     @Shadow
     @Final
     private static Logger LOGGER;
@@ -152,6 +153,14 @@ public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSett
         if (!this.isCesium) {
             this.storage.close();
         }
+    }
+
+    public void cesium$flush() {
+        this.lmdbStorage.flushChanges();
+    }
+
+    public void cesium$close() {
+        this.lmdbStorage.close();
     }
 
     @Override

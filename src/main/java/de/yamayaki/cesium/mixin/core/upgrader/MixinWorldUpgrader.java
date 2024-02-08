@@ -1,5 +1,6 @@
 package de.yamayaki.cesium.mixin.core.upgrader;
 
+import de.yamayaki.cesium.accessor.DatabaseActions;
 import de.yamayaki.cesium.accessor.DatabaseSetter;
 import de.yamayaki.cesium.accessor.SpecificationSetter;
 import de.yamayaki.cesium.common.db.LMDBInstance;
@@ -34,8 +35,17 @@ public abstract class MixinWorldUpgrader {
     @Unique
     private DatabaseSpec<ChunkPos, CompoundTag> tmpSpec;
 
+    @Redirect(method = "upgrade", at = @At(value = "INVOKE", target = "Ljava/lang/AutoCloseable;close()V"))
+    public void cesiumClose(AutoCloseable instance) throws Exception {
+        if(instance instanceof DatabaseActions databaseActions) {
+            databaseActions.cesium$close();
+        }
+
+        instance.close();
+    }
+
     @Inject(method = "getDimensionsToUpgrade", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/worldupdate/WorldUpgrader$AbstractUpgrader;getFilesToProcess(Lnet/minecraft/world/level/chunk/storage/RegionStorageInfo;Ljava/nio/file/Path;)Ljava/util/ListIterator;", shift = At.Shift.BY), locals = LocalCapture.CAPTURE_FAILEXCEPTION)
-    public <T extends AutoCloseable> void createCesium(CallbackInfoReturnable<List<WorldUpgrader.DimensionToUpgrade<T>>> cir, List list, Iterator var2, ResourceKey resourceKey, RegionStorageInfo regionStorageInfo, Path path, AutoCloseable autoCloseable) {
+    public <T extends AutoCloseable> void cesiumCreate(CallbackInfoReturnable<List<WorldUpgrader.DimensionToUpgrade<T>>> cir, List list, Iterator var2, ResourceKey resourceKey, RegionStorageInfo regionStorageInfo, Path path, AutoCloseable autoCloseable) {
         LMDBInstance lmdbInstance = new LMDBInstance(path.getParent(), "chunks", new DatabaseSpec[]{
                 WorldDatabaseSpecs.CHUNK_DATA,
                 WorldDatabaseSpecs.POI,
@@ -58,7 +68,7 @@ public abstract class MixinWorldUpgrader {
     }
 
     @Redirect(method = "getFilesToProcess", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/worldupdate/WorldUpgrader$AbstractUpgrader;getAllChunkPositions(Lnet/minecraft/world/level/chunk/storage/RegionStorageInfo;Ljava/nio/file/Path;)Ljava/util/List;"))
-    public List<WorldUpgrader.FileToUpgrade> redirectListFiles(RegionStorageInfo regionStorageInfo, Path path) {
+    public List<WorldUpgrader.FileToUpgrade> cesiumGetChunks(RegionStorageInfo regionStorageInfo, Path path) {
         final List<ChunkPos> list = new ArrayList<>();
         final Cursor<byte[]> cursor = tmpLMDBInstance.getDatabase(tmpSpec)
                 .getIterator();
