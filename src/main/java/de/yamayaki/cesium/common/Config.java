@@ -2,8 +2,13 @@ package de.yamayaki.cesium.common;
 
 @SuppressWarnings({"FieldCanBeLocal", "FieldMayBeFinal"})
 public class Config {
+    private Client client = new Client();
     private Compression compression = new Compression();
     private MapGrow mapGrow = new MapGrow();
+
+    public Client getClient() {
+        return this.client;
+    }
 
     public Compression getCompression() {
         return this.compression;
@@ -11,6 +16,14 @@ public class Config {
 
     public MapGrow getMapGrow() {
         return this.mapGrow;
+    }
+
+    public static class Client {
+        private boolean show_debug = false;
+
+        public boolean showDebug() {
+            return this.show_debug;
+        }
     }
 
     public static class Compression {

@@ -1,5 +1,6 @@
 package de.yamayaki.cesium.mixin.gui;
 
+import de.yamayaki.cesium.CesiumMod;
 import de.yamayaki.cesium.accessor.DatabaseSource;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import net.minecraft.client.Minecraft;
@@ -21,6 +22,10 @@ import java.util.List;
 public class MixinDebugScreenOverlay {
     @Inject(method = "getSystemInformation", at = @At("RETURN"), locals = LocalCapture.CAPTURE_FAILEXCEPTION)
     private void cesium$addDebugInfo(CallbackInfoReturnable<List<String>> cir, long l, long m, long n, long o, List<String> list) {
+        if(!CesiumMod.config().getClient().showDebug()) {
+            return;
+        }
+
         final MinecraftServer minecraftServer = Minecraft.getInstance().getSingleplayerServer();
         if (minecraftServer == null || Minecraft.getInstance().level == null) {
             return;
