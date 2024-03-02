@@ -31,6 +31,8 @@ public class KVTransaction<K, V> {
             synchronized (this.pending) {
                 this.pending.put(key, data);
             }
+
+            this.storage.setDirty();
         } catch (IOException e) {
             throw new RuntimeException("Couldn't serialize value", e);
         }

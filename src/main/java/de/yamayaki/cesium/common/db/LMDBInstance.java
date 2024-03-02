@@ -12,7 +12,6 @@ import org.lmdbjava.LmdbException;
 import org.lmdbjava.Stat;
 import org.lmdbjava.Txn;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,6 +29,8 @@ public class LMDBInstance {
     protected final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     protected final int maxCommitTries = 3;
     protected final int resizeStep;
+
+    protected volatile boolean isDirty = false;
 
     public LMDBInstance(Path dir, String name, DatabaseSpec<?, ?>[] databases) {
         if(!Files.isDirectory(dir)) {
@@ -94,6 +95,11 @@ public class LMDBInstance {
     }
 
     private void commitTransaction() {
+        if(!this.isDirty) {
+            this.isDirty = false;
+            return;
+        }
+
         boolean success = false;
         int tries = 0;
 
@@ -152,6 +158,7 @@ public class LMDBInstance {
 
         this.transactions.values()
                 .forEach(KVTransaction::clearSnapshot);
+        this.isDirty = false;
     }
 
     private void growMap() {
