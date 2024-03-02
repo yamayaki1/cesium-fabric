@@ -104,6 +104,10 @@ public class KVDatabase<K, V> {
         }
     }
 
+    public void setDirty() {
+        this.storage.isDirty = true;
+    }
+
     public KeySerializer<K> getKeySerializer() {
         return this.keySerializer;
     }
