@@ -2,6 +2,7 @@ package de.yamayaki.cesium.converter;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.mojang.logging.LogUtils;
+import de.yamayaki.cesium.CesiumMod;
 import de.yamayaki.cesium.converter.formats.anvil.AnvilChunkStorage;
 import de.yamayaki.cesium.converter.formats.anvil.AnvilPlayerStorage;
 import de.yamayaki.cesium.converter.formats.cesium.CesiumChunkStorage;
@@ -146,7 +147,10 @@ public class WorldConverter {
                         newStorage.setEntityData(chunkPos, originalStorage.getEntityData(chunkPos));
 
                         this.progressCurrent++;
-                    }, Util.backgroundExecutor())
+                    }, Util.backgroundExecutor()).exceptionally(throwable -> {
+                        CesiumMod.logger().error("Could not convert chunk", throwable);
+                        return null;
+                    })
             );
 
             currentChunk++;
