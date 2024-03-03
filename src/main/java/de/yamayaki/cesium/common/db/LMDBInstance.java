@@ -83,23 +83,24 @@ public class LMDBInstance {
     }
 
     public void flushChanges() {
+        if(!this.isDirty) {
+            return;
+        }
+
         this.lock.writeLock()
                 .lock();
 
         try {
             this.commitTransaction();
         } finally {
+            this.isDirty = false;
+
             this.lock.writeLock()
                     .unlock();
         }
     }
 
     private void commitTransaction() {
-        if(!this.isDirty) {
-            this.isDirty = false;
-            return;
-        }
-
         boolean success = false;
         int tries = 0;
 
@@ -158,7 +159,6 @@ public class LMDBInstance {
 
         this.transactions.values()
                 .forEach(KVTransaction::clearSnapshot);
-        this.isDirty = false;
     }
 
     private void growMap() {
