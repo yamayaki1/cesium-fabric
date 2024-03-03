@@ -164,6 +164,8 @@ public class WorldConverter {
             }
         }
 
+        CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
+
         originalStorage.close();
         newStorage.close();
     }
