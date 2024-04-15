@@ -47,7 +47,7 @@ public abstract class MixinWorldUpgrader {
 
     @Redirect(method = "upgrade", at = @At(value = "INVOKE", target = "Ljava/lang/AutoCloseable;close()V"))
     public void cesiumClose(AutoCloseable instance) throws Exception {
-        if(instance instanceof DatabaseActions databaseActions) {
+        if (instance instanceof DatabaseActions databaseActions) {
             databaseActions.cesium$close();
         }
 
@@ -64,7 +64,6 @@ public abstract class MixinWorldUpgrader {
 
         return this.processOnePosition(resourceKey, autoCloseable, chunkPos);
     }
-
 
 
     @Inject(method = "getDimensionsToUpgrade", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/worldupdate/WorldUpgrader$AbstractUpgrader;getFilesToProcess(Lnet/minecraft/world/level/chunk/storage/RegionStorageInfo;Ljava/nio/file/Path;)Ljava/util/ListIterator;", shift = At.Shift.BY), locals = LocalCapture.CAPTURE_FAILEXCEPTION)
@@ -85,8 +84,8 @@ public abstract class MixinWorldUpgrader {
         tmpSpec = databaseSpec;
 
         ((DatabaseSetter) autoCloseable).cesium$setStorage(lmdbInstance);
-        if(autoCloseable instanceof SpecificationSetter) {
-            ((SpecificationSetter)autoCloseable).cesium$setSpec(databaseSpec);
+        if (autoCloseable instanceof SpecificationSetter) {
+            ((SpecificationSetter) autoCloseable).cesium$setSpec(databaseSpec);
         }
     }
 
@@ -105,7 +104,7 @@ public abstract class MixinWorldUpgrader {
 
             final String regionKey = chunkPos.getRegionX() + "." + chunkPos.getRegionZ();
 
-            if(!regionList.containsKey(regionKey)) {
+            if (!regionList.containsKey(regionKey)) {
                 regionList.put(regionKey, new ArrayList<>());
             }
 

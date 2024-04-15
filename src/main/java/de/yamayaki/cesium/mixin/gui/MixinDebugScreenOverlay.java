@@ -22,7 +22,7 @@ import java.util.List;
 public class MixinDebugScreenOverlay {
     @Inject(method = "getSystemInformation", at = @At("RETURN"), locals = LocalCapture.CAPTURE_FAILEXCEPTION)
     private void cesium$addDebugInfo(CallbackInfoReturnable<List<String>> cir, long l, long m, long n, long o, List<String> list) {
-        if(!CesiumMod.config().getClient().showDebug()) {
+        if (!CesiumMod.config().getClient().showDebug()) {
             return;
         }
 

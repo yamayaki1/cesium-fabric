@@ -72,7 +72,7 @@ public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSett
      */
     @Redirect(method = "method_27946", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/RegionFileStorage;flush()V"))
     private void cesium$flush(RegionFileStorage instance) throws IOException {
-        if(!this.isCesium) {
+        if (!this.isCesium) {
             instance.flush();
         }
     }

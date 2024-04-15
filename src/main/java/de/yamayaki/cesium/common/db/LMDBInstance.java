@@ -33,7 +33,7 @@ public class LMDBInstance {
     protected volatile boolean isDirty = false;
 
     public LMDBInstance(Path dir, String name, DatabaseSpec<?, ?>[] databases) {
-        if(!Files.isDirectory(dir)) {
+        if (!Files.isDirectory(dir)) {
             try {
                 Files.createDirectories(dir);
             } catch (IOException ioException) {
@@ -43,7 +43,7 @@ public class LMDBInstance {
 
         this.env = Env.create(ByteArrayProxy.PROXY_BA)
                 .setMaxDbs(databases.length)
-                .open(dir.resolve(name+".db").toFile(), EnvFlags.MDB_NOLOCK, EnvFlags.MDB_NOSUBDIR, EnvFlags.MDB_WRITEMAP);
+                .open(dir.resolve(name + ".db").toFile(), EnvFlags.MDB_NOLOCK, EnvFlags.MDB_NOSUBDIR, EnvFlags.MDB_WRITEMAP);
 
         this.resizeStep = Arrays.stream(databases).mapToInt(DatabaseSpec::getInitialSize).sum();
 
@@ -83,7 +83,7 @@ public class LMDBInstance {
     }
 
     public void flushChanges() {
-        if(!this.isDirty) {
+        if (!this.isDirty) {
             return;
         }
 

@@ -10,7 +10,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,7 +22,7 @@ public class ChunkExporterMixin {
 
     static {
         try {
-            if(!Files.isDirectory(basePath)) {
+            if (!Files.isDirectory(basePath)) {
                 Files.createDirectories(basePath);
             }
         } catch (IOException e) {
