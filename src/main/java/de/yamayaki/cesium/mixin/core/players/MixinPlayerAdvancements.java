@@ -1,6 +1,8 @@
 package de.yamayaki.cesium.mixin.core.players;
 
 import com.google.gson.JsonElement;
+import com.llamalad7.mixinextras.sugar.Share;
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import de.yamayaki.cesium.accessor.DatabaseSetter;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.impl.PlayerDatabaseSpecs;
@@ -13,7 +15,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
@@ -76,19 +77,23 @@ public abstract class MixinPlayerAdvancements implements DatabaseSetter {
     }
 
     @Redirect(method = "save", at = @At(value = "INVOKE", target = "Ljava/nio/file/Files;newBufferedWriter(Ljava/nio/file/Path;Ljava/nio/charset/Charset;[Ljava/nio/file/OpenOption;)Ljava/io/BufferedWriter;"))
-    private BufferedWriter disableFileRead(Path path, Charset cs, OpenOption[] options) {
-        return null;
-    }
+    private BufferedWriter replaceFileBufferedWriter(Path path, Charset cs, OpenOption[] options, @Share("stringWriter") LocalRef<StringWriter> localWriter) {
+        final StringWriter stringWriter = new StringWriter();
+        localWriter.set(stringWriter);
 
-    @ModifyVariable(method = "save", at = @At(value = "STORE"))
-    private Writer createStringWriter(Writer writer) {
-        return new StringWriter();
+        return new BufferedWriter(stringWriter);
     }
 
     @Inject(method = "save", at = @At(value = "INVOKE", target = "Lcom/google/gson/Gson;toJson(Lcom/google/gson/JsonElement;Lcom/google/gson/stream/JsonWriter;)V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
-    private void saveStringWriterContent(CallbackInfo ci, JsonElement jsonElement, Writer writer) {
+    private void flushAndSaveStringWriterContent(CallbackInfo ci, JsonElement jsonElement, Writer writer, @Share("stringWriter") LocalRef<StringWriter> localWriter) {
+        try {
+            writer.flush();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to write advancements to buffer");
+        }
+
         this.database
                 .getTransaction(PlayerDatabaseSpecs.ADVANCEMENTS)
-                .add(this.player.getUUID(), writer.toString());
+                .add(this.player.getUUID(), localWriter.get().toString());
     }
 }
