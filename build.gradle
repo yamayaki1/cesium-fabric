@@ -1,9 +1,9 @@
 plugins {
-    id 'fabric-loom' version '1.5.7'
+    id 'fabric-loom' version '1.6.9'
 }
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+sourceCompatibility = JavaVersion.VERSION_21
+targetCompatibility = JavaVersion.VERSION_21
 
 archivesBaseName = project.archives_base_name + "+" + project.minecraft_version
 version = project.mod_version
@@ -45,7 +45,7 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 17
+    it.options.release = 21
 }
 
 java {

@@ -25,8 +25,10 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 @Debug(export = true)
 @Mixin(targets = "net.minecraft.util.worldupdate.WorldUpgrader$AbstractUpgrader")
@@ -90,9 +92,10 @@ public abstract class MixinWorldUpgrader {
 
     @Redirect(method = "getFilesToProcess", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/worldupdate/WorldUpgrader$AbstractUpgrader;getAllChunkPositions(Lnet/minecraft/world/level/chunk/storage/RegionStorageInfo;Ljava/nio/file/Path;)Ljava/util/List;"))
     public List<WorldUpgrader.FileToUpgrade> cesiumGetChunks(RegionStorageInfo regionStorageInfo, Path path) {
-        final List<ChunkPos> list = new ArrayList<>();
         final Cursor<byte[]> cursor = tmpLMDBInstance.getDatabase(tmpSpec)
                 .getIterator();
+
+        final Map<String, List<ChunkPos>> regionList = new HashMap<>();
 
         boolean exists = cursor.first();
         while (exists) {
@@ -100,7 +103,14 @@ public abstract class MixinWorldUpgrader {
                     .getKeySerializer()
                     .deserializeKey(cursor.key());
 
-            list.add(chunkPos);
+            final String regionKey = chunkPos.getRegionX() + "." + chunkPos.getRegionZ();
+
+            if(!regionList.containsKey(regionKey)) {
+                regionList.put(regionKey, new ArrayList<>());
+            }
+
+            regionList.get(regionKey).add(chunkPos);
+
             exists = cursor.next();
         }
 
@@ -109,6 +119,6 @@ public abstract class MixinWorldUpgrader {
         tmpLMDBInstance = null;
         tmpSpec = null;
 
-        return List.of(new WorldUpgrader.FileToUpgrade(null, list));
+        return regionList.values().stream().map(list -> new WorldUpgrader.FileToUpgrade(null, list)).toList();
     }
 }
