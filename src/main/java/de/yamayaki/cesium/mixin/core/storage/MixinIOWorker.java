@@ -10,7 +10,6 @@ import net.minecraft.nbt.StreamTagVisitor;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.storage.IOWorker;
 import net.minecraft.world.level.chunk.storage.RegionFileStorage;
-import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -20,7 +19,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 import java.io.IOException;
 
-@Debug(export = true)
 @Mixin(IOWorker.class)
 public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSetter, DatabaseActions {
     @Shadow
