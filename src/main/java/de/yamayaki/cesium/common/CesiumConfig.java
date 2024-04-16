@@ -1,7 +1,7 @@
 package de.yamayaki.cesium.common;
 
 @SuppressWarnings({"FieldCanBeLocal", "FieldMayBeFinal"})
-public class Config {
+public class CesiumConfig {
     private Client client = new Client();
     private Compression compression = new Compression();
     private MapGrow mapGrow = new MapGrow();
