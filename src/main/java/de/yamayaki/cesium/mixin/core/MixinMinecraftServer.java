@@ -21,13 +21,16 @@ import java.util.concurrent.Executors;
 import java.util.function.BooleanSupplier;
 
 @Mixin(MinecraftServer.class)
-public class MixinMinecraftServer {
+public abstract class MixinMinecraftServer {
     @Shadow
     private PlayerList playerList;
 
     @Shadow
     @Final
     private Map<ResourceKey<Level>, ServerLevel> levels;
+
+    @Shadow
+    public abstract PlayerList getPlayerList();
 
     @Unique
     private final ExecutorService saveExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "Cesium-Async-Save"));
@@ -41,12 +44,25 @@ public class MixinMinecraftServer {
             this.saveFuture.join();
         }
 
+        this.cesium$autosaveData();
+
         this.saveFuture = CompletableFuture.runAsync(() -> {
             ((DatabaseSource) this.playerList).cesium$getStorage().flushChanges();
             for (final ServerLevel level : this.levels.values()) {
                 ((DatabaseSource) level).cesium$getStorage().flushChanges();
             }
         }, this.saveExecutor);
+    }
+
+    @Unique
+    private void cesium$autosaveData() {
+        // Save player data
+        this.getPlayerList().saveAll();
+
+        // Save chunk data
+        for (final ServerLevel serverLevel : this.levels.values()) {
+            serverLevel.save(null, false, false);
+        }
     }
 
     @Inject(method = "stopServer", at = @At("TAIL"))
