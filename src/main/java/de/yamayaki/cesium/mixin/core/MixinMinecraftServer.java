@@ -1,5 +1,6 @@
 package de.yamayaki.cesium.mixin.core;
 
+import de.yamayaki.cesium.CesiumMod;
 import de.yamayaki.cesium.accessor.DatabaseSource;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -44,7 +45,9 @@ public abstract class MixinMinecraftServer {
             this.saveFuture.join();
         }
 
-        this.cesium$autosaveData();
+        if (CesiumMod.config().doSaveAfterTick()) {
+            this.cesium$autosaveData();
+        }
 
         this.saveFuture = CompletableFuture.runAsync(() -> {
             ((DatabaseSource) this.playerList).cesium$getStorage().flushChanges();

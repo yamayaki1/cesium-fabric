@@ -1,10 +1,11 @@
 package de.yamayaki.cesium.common;
 
-@SuppressWarnings({"FieldCanBeLocal", "FieldMayBeFinal"})
+@SuppressWarnings({"FieldCanBeLocal", "FieldMayBeFinal", "unused"})
 public class CesiumConfig {
     private Client client = new Client();
     private Compression compression = new Compression();
     private MapGrow mapGrow = new MapGrow();
+    private ForceSaveAfterTick forceSaveAfterTick = new ForceSaveAfterTick();
 
     public Client getClient() {
         return this.client;
@@ -16,6 +17,10 @@ public class CesiumConfig {
 
     public MapGrow getMapGrow() {
         return this.mapGrow;
+    }
+
+    public boolean doSaveAfterTick() {
+        return this.forceSaveAfterTick.getValue();
     }
 
     public static class Client {
@@ -49,6 +54,15 @@ public class CesiumConfig {
 
         public float getMultiply() {
             return this.multiply;
+        }
+    }
+
+    public static class ForceSaveAfterTick {
+        private boolean value = false;
+        private String comment = "This option is really slow on NTFS based filesystems it seems (Windows).";
+
+        public boolean getValue() {
+            return this.value;
         }
     }
 }
