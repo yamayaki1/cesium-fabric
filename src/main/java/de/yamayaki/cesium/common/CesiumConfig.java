@@ -6,6 +6,7 @@ public class CesiumConfig {
     private Compression compression = new Compression();
     private MapGrow mapGrow = new MapGrow();
     private ForceSaveAfterTick forceSaveAfterTick = new ForceSaveAfterTick();
+    private DisableCompression disableCompression = new DisableCompression();
 
     public Client getClient() {
         return this.client;
@@ -21,6 +22,10 @@ public class CesiumConfig {
 
     public boolean doSaveAfterTick() {
         return this.forceSaveAfterTick.getValue();
+    }
+
+    public boolean isUncompressed() {
+        return this.disableCompression.getValue();
     }
 
     public static class Client {
@@ -54,6 +59,15 @@ public class CesiumConfig {
 
         public float getMultiply() {
             return this.multiply;
+        }
+    }
+
+    public static class DisableCompression {
+        private boolean value = false;
+        private String comment = "This option forcefully disables all compression on data saved by Cesium. Worlds have to be reimported through the world converter. A new database is used for uncompressed data.";
+
+        public boolean getValue() {
+            return this.value;
         }
     }
 

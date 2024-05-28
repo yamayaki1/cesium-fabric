@@ -37,6 +37,10 @@ public class CesiumMod implements ModInitializer {
         return CONFIG;
     }
 
+    public static String getFileEnding() {
+        return CONFIG.isUncompressed() ? ".uncompressed.db" : ".db";
+    }
+
     private static void initConfig() {
         final Gson gson = new GsonBuilder()
                 .serializeNulls()

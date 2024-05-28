@@ -43,7 +43,7 @@ public class LMDBInstance {
 
         this.env = Env.create(ByteArrayProxy.PROXY_BA)
                 .setMaxDbs(databases.length)
-                .open(dir.resolve(name + ".db").toFile(), EnvFlags.MDB_NOLOCK, EnvFlags.MDB_NOSUBDIR, EnvFlags.MDB_WRITEMAP);
+                .open(dir.resolve(name + CesiumMod.getFileEnding()).toFile(), EnvFlags.MDB_NOLOCK, EnvFlags.MDB_NOSUBDIR, EnvFlags.MDB_WRITEMAP);
 
         this.resizeStep = Arrays.stream(databases).mapToInt(DatabaseSpec::getInitialSize).sum();
 
