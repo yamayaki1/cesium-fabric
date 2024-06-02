@@ -14,8 +14,8 @@ import java.io.InputStream;
 import java.util.Arrays;
 
 public class ZSTDCompressor implements StreamCompressor {
-    private static final int compressionLevel = CesiumMod.config().getCompression().getLevel();
-    private static final boolean usesDict = CesiumMod.config().getCompression().usesDictionary();
+    private static final int compressionLevel = CesiumMod.config().compressionLevel();
+    private static final boolean usesDict = CesiumMod.config().useDictionary();
 
     private final ThreadLocal<ZstdCompressCtx> cCtx = ThreadLocal.withInitial(() -> {
         ZstdCompressCtx ctx = new ZstdCompressCtx();

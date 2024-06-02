@@ -2,7 +2,6 @@ package de.yamayaki.cesium;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import de.yamayaki.cesium.common.CesiumConfig;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import org.apache.logging.log4j.LogManager;

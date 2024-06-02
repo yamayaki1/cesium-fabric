@@ -45,7 +45,7 @@ public abstract class MixinMinecraftServer {
             this.saveFuture.join();
         }
 
-        if (CesiumMod.config().doSaveAfterTick()) {
+        if (CesiumMod.config().saveAfterTick()) {
             this.cesium$autosaveData();
         }
 
