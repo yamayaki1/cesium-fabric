@@ -76,7 +76,7 @@ public class ZSTDCompressor implements StreamCompressor {
 
     @Override
     public byte[] decompress(byte[] src) {
-        byte[] dst = new byte[(int) checkError(Zstd.decompressedSize(src))];
+        byte[] dst = new byte[(int) checkError(Zstd.getFrameContentSize(src))];
         final long dictKey = Zstd.getDictIdFromFrame(src);
 
         final ZstdDecompressCtx ctx = this.dCtx.get();
