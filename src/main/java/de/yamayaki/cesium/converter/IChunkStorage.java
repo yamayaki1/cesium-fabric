@@ -5,12 +5,10 @@ import net.minecraft.world.level.ChunkPos;
 
 import java.util.List;
 
-public interface IChunkStorage {
+public interface IChunkStorage extends AutoCloseable {
     List<ChunkPos> getAllChunks();
 
     void flush();
-
-    void close();
 
     /**
      * ChunkData

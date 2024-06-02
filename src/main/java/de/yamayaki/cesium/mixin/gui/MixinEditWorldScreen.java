@@ -1,17 +1,26 @@
 package de.yamayaki.cesium.mixin.gui;
 
+import de.yamayaki.cesium.CesiumMod;
 import de.yamayaki.cesium.converter.WorldConverter;
 import de.yamayaki.cesium.converter.gui.ConvertWorldScreen;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.worldselection.EditWorldScreen;
+import net.minecraft.client.gui.screens.worldselection.WorldOpenFlows;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.WorldStem;
+import net.minecraft.server.packs.repository.PackRepository;
+import net.minecraft.server.packs.repository.ServerPacksSource;
 import net.minecraft.world.level.storage.LevelStorageSource;
+import net.minecraft.world.level.storage.WorldData;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -39,13 +48,37 @@ public abstract class MixinEditWorldScreen extends Screen {
         LinearLayout linearLayout = LinearLayout.horizontal();
 
         linearLayout.addChild(Button.builder(Component.literal("Anvil → Cesium"), buttonx -> {
-            this.minecraft.setScreen(new ConvertWorldScreen(WorldConverter.Format.TO_CESIUM, this.minecraft, this.levelAccess, this.callback));
+            this.minecraft.setScreen(this.createConvertScreen(WorldConverter.Format.TO_CESIUM, this.minecraft, this.levelAccess, this.callback));
         }).width(100).build());
 
         linearLayout.addChild(Button.builder(Component.literal("Cesium → Anvil"), buttonx -> {
-            this.minecraft.setScreen(new ConvertWorldScreen(WorldConverter.Format.TO_ANVIL, this.minecraft, this.levelAccess, this.callback));
+            this.minecraft.setScreen(this.createConvertScreen(WorldConverter.Format.TO_ANVIL, this.minecraft, this.levelAccess, this.callback));
         }).width(100).build());
 
         this.layout.addChild(linearLayout);
+    }
+
+    /*
+     * See vanilla code net.minecraft.client.gui.screens.worldselection.OptimizeWorldScreen.create(...);
+     */
+    @Unique
+    private Screen createConvertScreen(final WorldConverter.Format format, final Minecraft minecraft, final LevelStorageSource.LevelStorageAccess levelStorageAccess, final BooleanConsumer callback) {
+        try {
+            final WorldOpenFlows worldOpenFlows = minecraft.createWorldOpenFlows();
+            final PackRepository packRepository = ServerPacksSource.createPackRepository(levelStorageAccess);
+
+            try (final WorldStem worldStem = worldOpenFlows.loadWorldStem(levelAccess.getDataTag(), false, packRepository)) {
+                final WorldData worldData = worldStem.worldData();
+                final RegistryAccess.Frozen frozen = worldStem.registries().compositeAccess();
+
+                levelStorageAccess.saveDataTag(frozen, worldData);
+
+                return new ConvertWorldScreen(format, levelStorageAccess, frozen, callback);
+            }
+        } catch (Throwable throwable) {
+            CesiumMod.logger().warn("Failed to load datapacks, can't convert world", throwable);
+        }
+
+        return null;
     }
 }

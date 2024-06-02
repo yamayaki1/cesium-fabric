@@ -5,10 +5,8 @@ import net.minecraft.nbt.CompoundTag;
 import java.util.List;
 import java.util.UUID;
 
-public interface IPlayerStorage {
+public interface IPlayerStorage extends AutoCloseable {
     List<UUID> getAllPlayers();
-
-    void close();
 
     /**
      * PlayerData
