@@ -5,6 +5,7 @@ import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.lmdbjava.ByteArrayProxy;
+import org.lmdbjava.CopyFlags;
 import org.lmdbjava.Env;
 import org.lmdbjava.EnvFlags;
 import org.lmdbjava.EnvInfo;
@@ -174,6 +175,18 @@ public class LMDBInstance {
         }
     }
 
+    public void createCopy(final Path path) {
+        this.lock.writeLock()
+                .lock();
+
+        try {
+            this.env.copy(path.toFile(), CopyFlags.MDB_CP_COMPACT);
+        } finally {
+            this.lock.writeLock()
+                    .unlock();
+        }
+    }
+
     public List<Stat> getStats() {
         this.lock.readLock()
                 .lock();
@@ -193,8 +206,8 @@ public class LMDBInstance {
         return this.lock;
     }
 
-    Env<byte[]> env() {
-        return this.env;
+    public boolean closed() {
+        return this.env.isClosed();
     }
 
     public void close() {

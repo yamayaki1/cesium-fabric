@@ -1,10 +1,10 @@
-package de.yamayaki.cesium.converter.formats.cesium;
+package de.yamayaki.cesium.maintenance.storage.cesium;
 
 import de.yamayaki.cesium.CesiumMod;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import de.yamayaki.cesium.common.db.spec.impl.WorldDatabaseSpecs;
-import de.yamayaki.cesium.converter.IChunkStorage;
+import de.yamayaki.cesium.maintenance.storage.IChunkStorage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;
 import org.lmdbjava.Cursor;

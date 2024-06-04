@@ -1,9 +1,9 @@
-package de.yamayaki.cesium.converter.formats.cesium;
+package de.yamayaki.cesium.maintenance.storage.cesium;
 
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import de.yamayaki.cesium.common.db.spec.impl.PlayerDatabaseSpecs;
-import de.yamayaki.cesium.converter.IPlayerStorage;
+import de.yamayaki.cesium.maintenance.storage.IPlayerStorage;
 import net.minecraft.nbt.CompoundTag;
 import org.lmdbjava.Cursor;
 

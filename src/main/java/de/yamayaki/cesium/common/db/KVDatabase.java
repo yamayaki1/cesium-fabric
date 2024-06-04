@@ -29,7 +29,7 @@ public class KVDatabase<K, V> {
     public KVDatabase(LMDBInstance storage, DatabaseSpec<K, V> spec) {
         this.storage = storage;
 
-        this.env = this.storage.env();
+        this.env = this.storage.env;
         this.dbi = this.env.openDbi(spec.getName(), DbiFlags.MDB_CREATE);
 
         this.keySerializer = DefaultSerializers.getKeySerializer(spec.getKeyType());

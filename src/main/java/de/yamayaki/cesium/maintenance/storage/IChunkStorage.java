@@ -1,4 +1,4 @@
-package de.yamayaki.cesium.converter;
+package de.yamayaki.cesium.maintenance.storage;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;

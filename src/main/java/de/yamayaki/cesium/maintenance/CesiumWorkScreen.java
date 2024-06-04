@@ -1,6 +1,8 @@
-package de.yamayaki.cesium.converter.gui;
+package de.yamayaki.cesium.maintenance;
 
-import de.yamayaki.cesium.converter.WorldConverter;
+import de.yamayaki.cesium.maintenance.tasks.DatabaseCompact;
+import de.yamayaki.cesium.maintenance.tasks.ICesiumTask;
+import de.yamayaki.cesium.maintenance.tasks.DatabaseConvert;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -10,29 +12,31 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.storage.LevelStorageSource;
 
-public class ConvertWorldScreen extends Screen {
+public class CesiumWorkScreen extends Screen {
     private final BooleanConsumer callback;
-    private final WorldConverter converter;
+    private final ICesiumTask cesiumTask;
 
-    public ConvertWorldScreen(WorldConverter.Format format, LevelStorageSource.LevelStorageAccess levelAccess, RegistryAccess registryAccess, BooleanConsumer callback) {
+    public CesiumWorkScreen(ICesiumTask.CesiumTask cesiumTask, LevelStorageSource.LevelStorageAccess levelAccess, RegistryAccess registryAccess, BooleanConsumer callback) {
         super(Component.literal("Converting world"));
 
         this.callback = callback;
-        this.converter = new WorldConverter(format, levelAccess, registryAccess);
+        this.cesiumTask = cesiumTask == ICesiumTask.CesiumTask.COMPACT
+                ? new DatabaseCompact(levelAccess, registryAccess)
+                : new DatabaseConvert(cesiumTask, levelAccess, registryAccess);
     }
 
     @Override
     protected void init() {
         super.init();
         this.addRenderableWidget(Button.builder(CommonComponents.GUI_CANCEL, button -> {
-            this.converter.cancelTask();
+            this.cesiumTask.cancelTask();
             this.callback.accept(false);
         }).bounds(this.width / 2 - 100, this.height / 4 + 150, 200, 20).build());
     }
 
     @Override
     public void tick() {
-        if (!this.converter.running()) {
+        if (!this.cesiumTask.running()) {
             this.callback.accept(true);
         }
     }
@@ -44,7 +48,7 @@ public class ConvertWorldScreen extends Screen {
 
     @Override
     public void removed() {
-        this.converter.cancelTask();
+        this.cesiumTask.cancelTask();
     }
 
     @Override
@@ -61,8 +65,8 @@ public class ConvertWorldScreen extends Screen {
         guiGraphics.drawCenteredString(this.font, this.title, offsetX, 20, textColor);
 
         final Component[] drawables = new Component[]{
-                Component.literal(String.format("Level: %s", this.converter.levelName())),
-                Component.literal(String.format("Chunk: %s / %s", this.converter.currentElement(), this.converter.totalElements()))
+                Component.literal(String.format("Level: %s", this.cesiumTask.levelName())),
+                Component.literal(String.format("Progress: %s / %s", this.cesiumTask.currentElement(), this.cesiumTask.totalElements()))
         };
 
         for (int index = 0; index < drawables.length; index++) {
@@ -70,10 +74,10 @@ public class ConvertWorldScreen extends Screen {
         }
 
         final int statusOffset = 40 + ((drawables.length + 2) * textOffset);
-        guiGraphics.drawCenteredString(this.font, this.converter.status(), offsetX, statusOffset, textColor);
+        guiGraphics.drawCenteredString(this.font, this.cesiumTask.status(), offsetX, statusOffset, textColor);
 
         final int progressOffset = statusOffset + textOffset;
-        final int barEnd = (int) Math.floor(this.converter.percentage() * (endX - startX));
+        final int barEnd = (int) Math.floor(this.cesiumTask.percentage() * (endX - startX));
 
         guiGraphics.fill(startX - 1, progressOffset - 1, endX + 1, progressOffset + textOffset + 1, -16777216);
         guiGraphics.fill(startX, progressOffset, startX + barEnd, progressOffset + textOffset, -13408734);

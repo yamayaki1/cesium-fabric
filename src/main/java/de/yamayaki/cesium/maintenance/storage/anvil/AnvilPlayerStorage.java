@@ -1,8 +1,8 @@
-package de.yamayaki.cesium.converter.formats.anvil;
+package de.yamayaki.cesium.maintenance.storage.anvil;
 
 import de.yamayaki.cesium.CesiumMod;
-import de.yamayaki.cesium.converter.ConvHelper;
-import de.yamayaki.cesium.converter.IPlayerStorage;
+import de.yamayaki.cesium.maintenance.ConvHelper;
+import de.yamayaki.cesium.maintenance.storage.IPlayerStorage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;

@@ -1,8 +1,8 @@
 package de.yamayaki.cesium.mixin.gui;
 
 import de.yamayaki.cesium.CesiumMod;
-import de.yamayaki.cesium.converter.WorldConverter;
-import de.yamayaki.cesium.converter.gui.ConvertWorldScreen;
+import de.yamayaki.cesium.maintenance.CesiumWorkScreen;
+import de.yamayaki.cesium.maintenance.tasks.ICesiumTask;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
@@ -48,12 +48,16 @@ public abstract class MixinEditWorldScreen extends Screen {
         LinearLayout linearLayout = LinearLayout.horizontal();
 
         linearLayout.addChild(Button.builder(Component.literal("Anvil → Cesium"), buttonx -> {
-            this.minecraft.setScreen(this.createConvertScreen(WorldConverter.Format.TO_CESIUM, this.minecraft, this.levelAccess, this.callback));
-        }).width(100).build());
+            this.minecraft.setScreen(new CesiumWorkScreen(ICesiumTask.CesiumTask.TO_CESIUM, this.levelAccess, this.createRegistry(this.minecraft, this.levelAccess), this.callback));
+        }).width(200 / 3).build());
 
         linearLayout.addChild(Button.builder(Component.literal("Cesium → Anvil"), buttonx -> {
-            this.minecraft.setScreen(this.createConvertScreen(WorldConverter.Format.TO_ANVIL, this.minecraft, this.levelAccess, this.callback));
-        }).width(100).build());
+            this.minecraft.setScreen(new CesiumWorkScreen(ICesiumTask.CesiumTask.TO_ANVIL, this.levelAccess, this.createRegistry(this.minecraft, this.levelAccess), this.callback));
+        }).width(200 / 3).build());
+
+        linearLayout.addChild(Button.builder(Component.literal("Compact DB"), buttonx -> {
+            this.minecraft.setScreen(new CesiumWorkScreen(ICesiumTask.CesiumTask.COMPACT, this.levelAccess, this.createRegistry(this.minecraft, this.levelAccess), this.callback));
+        }).width(200 / 3).build());
 
         this.layout.addChild(linearLayout);
     }
@@ -62,7 +66,7 @@ public abstract class MixinEditWorldScreen extends Screen {
      * See vanilla code net.minecraft.client.gui.screens.worldselection.OptimizeWorldScreen.create(...);
      */
     @Unique
-    private Screen createConvertScreen(final WorldConverter.Format format, final Minecraft minecraft, final LevelStorageSource.LevelStorageAccess levelStorageAccess, final BooleanConsumer callback) {
+    private RegistryAccess.Frozen createRegistry(final Minecraft minecraft, final LevelStorageSource.LevelStorageAccess levelStorageAccess) {
         try {
             final WorldOpenFlows worldOpenFlows = minecraft.createWorldOpenFlows();
             final PackRepository packRepository = ServerPacksSource.createPackRepository(levelStorageAccess);
@@ -73,7 +77,7 @@ public abstract class MixinEditWorldScreen extends Screen {
 
                 levelStorageAccess.saveDataTag(frozen, worldData);
 
-                return new ConvertWorldScreen(format, levelStorageAccess, frozen, callback);
+                return frozen;
             }
         } catch (Throwable throwable) {
             CesiumMod.logger().warn("Failed to load datapacks, can't convert world", throwable);

@@ -1,4 +1,4 @@
-package de.yamayaki.cesium.converter;
+package de.yamayaki.cesium.maintenance;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;

@@ -2,7 +2,8 @@ package de.yamayaki.cesium.mixin.convert_server;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import de.yamayaki.cesium.CesiumMod;
-import de.yamayaki.cesium.converter.WorldConverter;
+import de.yamayaki.cesium.maintenance.tasks.ICesiumTask;
+import de.yamayaki.cesium.maintenance.tasks.DatabaseConvert;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
@@ -34,30 +35,30 @@ public class MixinMain {
         final boolean convertAnvil;
 
         if ((convertAnvil = optionSet.has(cesium$convertOptionAnvil)) || optionSet.has(cesium$convertOptionCesium)) {
-            final WorldConverter.Format desiredFormat = convertAnvil ? WorldConverter.Format.TO_ANVIL : WorldConverter.Format.TO_CESIUM;
-            doWorldConversion(desiredFormat, levelAccess, registryAccess);
+            final ICesiumTask.CesiumTask desiredCesiumTask = convertAnvil ? ICesiumTask.CesiumTask.TO_ANVIL : ICesiumTask.CesiumTask.TO_CESIUM;
+            doWorldConversion(desiredCesiumTask, levelAccess, registryAccess);
         }
     }
 
     @Unique
-    private static void doWorldConversion(final WorldConverter.Format desiredFormat, final LevelStorageSource.LevelStorageAccess levelAccess, final RegistryAccess registryAccess) {
+    private static void doWorldConversion(final ICesiumTask.CesiumTask cesiumTask, final LevelStorageSource.LevelStorageAccess levelAccess, final RegistryAccess registryAccess) {
         final Logger logger = CesiumMod.logger();
         logger.info("Starting world conversion ...");
 
-        final WorldConverter worldConverter = new WorldConverter(desiredFormat, levelAccess, registryAccess);
+        final DatabaseConvert databaseConvert = new DatabaseConvert(cesiumTask, levelAccess, registryAccess);
 
         String previousStatus = null;
         String currentStatus;
 
-        while (worldConverter.running()) {
-            currentStatus = worldConverter.status();
+        while (databaseConvert.running()) {
+            currentStatus = databaseConvert.status();
 
             if (currentStatus != null && !currentStatus.equals(previousStatus)) {
                 previousStatus = currentStatus;
                 logger.info(currentStatus);
             }
 
-            logger.info("{}% completed ({} / {} elements) ...", Math.floor(worldConverter.percentage() * 100), worldConverter.currentElement(), worldConverter.totalElements());
+            logger.info("{}% completed ({} / {} elements) ...", Math.floor(databaseConvert.percentage() * 100), databaseConvert.currentElement(), databaseConvert.totalElements());
 
             try {
                 Thread.sleep(1000L);
