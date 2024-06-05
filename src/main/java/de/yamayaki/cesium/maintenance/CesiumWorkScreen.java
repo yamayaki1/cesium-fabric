@@ -20,9 +20,10 @@ public class CesiumWorkScreen extends Screen {
         super(Component.literal("Converting world"));
 
         this.callback = callback;
-        this.cesiumTask = cesiumTask == ICesiumTask.CesiumTask.COMPACT
-                ? new DatabaseCompact(levelAccess, registryAccess)
-                : new DatabaseConvert(cesiumTask, levelAccess, registryAccess);
+        this.cesiumTask = switch (cesiumTask) {
+            case TO_ANVIL, TO_CESIUM -> new DatabaseConvert(cesiumTask, levelAccess, registryAccess);
+            case COMPACT -> new DatabaseCompact(levelAccess, registryAccess);
+        };
     }
 
     @Override
