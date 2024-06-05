@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class ZSTDDictionary implements AutoCloseable {
-    private static final String[] DICTIONARIES = new String[] {
+    private static final String[] DICTIONARIES = new String[]{
             "1",
             "2"
     };
@@ -73,8 +73,8 @@ public class ZSTDDictionary implements AutoCloseable {
     public ZstdDictDecompress decompressDictionary(final long id) {
         final ZstdDictDecompress dictionary = this.decompressMap.get(id);
 
-        if(dictionary == null) {
-            throw new RuntimeException("Could not find dictionary with id "+id);
+        if (dictionary == null) {
+            throw new RuntimeException("Could not find dictionary with id " + id);
         }
 
         return dictionary;

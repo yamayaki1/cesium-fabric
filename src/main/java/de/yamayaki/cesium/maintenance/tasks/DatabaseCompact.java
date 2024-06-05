@@ -98,19 +98,19 @@ public class DatabaseCompact implements ICesiumTask {
 
         final LMDBInstance lmdbInstance = openDatabase(dimensionPath);
 
-        this.status.set("Compacting level data for "+level.location().getPath());
+        this.status.set("Compacting level data for " + level.location().getPath());
 
         try {
             lmdbInstance.createCopy(copyPath);
             lmdbInstance.close();
 
-            if(Files.isRegularFile(copyPath) && Files.isRegularFile(originalPath)) {
+            if (Files.isRegularFile(copyPath) && Files.isRegularFile(originalPath)) {
                 Files.move(copyPath, originalPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (final Throwable t) {
             throw new RuntimeException("Failed to compact level.", t);
         } finally {
-            if(!lmdbInstance.closed()) {
+            if (!lmdbInstance.closed()) {
                 lmdbInstance.close();
             }
         }

@@ -24,7 +24,7 @@ public class ZSTDContext {
         final ZstdCompressCtx ctx = new ZstdCompressCtx();
         ctx.setLevel(compressionLevel);
 
-        if(usesDictionary) {
+        if (usesDictionary) {
             ctx.loadDict(dictionary.compressDictionary());
         }
 
@@ -54,7 +54,7 @@ public class ZSTDContext {
         final Long2ObjectMap<ZstdDecompressCtx> map = this.decompressCtx.get();
         final ZstdDecompressCtx ctx = map.get(dictId);
 
-        if(ctx == null) {
+        if (ctx == null) {
             throw new RuntimeException("Could not find context for dictionary with id " + dictId);
         }
 

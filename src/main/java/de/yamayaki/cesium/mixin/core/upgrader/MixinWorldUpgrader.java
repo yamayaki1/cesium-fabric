@@ -92,8 +92,8 @@ public abstract class MixinWorldUpgrader {
     public List<WorldUpgrader.FileToUpgrade> cesiumGetChunks(RegionStorageInfo regionStorageInfo, Path path) {
         final Map<String, List<ChunkPos>> regionList = new HashMap<>();
 
-        try(final ICloseableIterator<ChunkPos> crs = tmpDatabase.getDatabase(tmpSpec).getIterator()) {
-            while(crs.hasNext()) {
+        try (final ICloseableIterator<ChunkPos> crs = tmpDatabase.getDatabase(tmpSpec).getIterator()) {
+            while (crs.hasNext()) {
                 final ChunkPos chunkPos = crs.next();
                 final String regionKey = chunkPos.getRegionX() + "." + chunkPos.getRegionZ();
 

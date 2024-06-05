@@ -1,8 +1,8 @@
 package de.yamayaki.cesium.maintenance;
 
 import de.yamayaki.cesium.maintenance.tasks.DatabaseCompact;
-import de.yamayaki.cesium.maintenance.tasks.ICesiumTask;
 import de.yamayaki.cesium.maintenance.tasks.DatabaseConvert;
+import de.yamayaki.cesium.maintenance.tasks.ICesiumTask;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;

@@ -9,7 +9,7 @@ public class ChunkPosSerializer implements KeySerializer<ChunkPos> {
         final int x = value.x;
         final int z = value.z;
 
-        return new byte[] {
+        return new byte[]{
                 (byte) (x >> 24), (byte) (x >> 16), (byte) (x >> 8), (byte) x,
                 (byte) (z >> 24), (byte) (z >> 16), (byte) (z >> 8), (byte) z
         };

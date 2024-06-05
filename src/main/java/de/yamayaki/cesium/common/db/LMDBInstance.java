@@ -27,8 +27,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class LMDBInstance implements IDBInstance {
     protected final Env<byte[]> env;
 
-    protected final Reference2ObjectMap<DatabaseSpec<?, ?>, KVDatabase<?,?>> databases = new Reference2ObjectOpenHashMap<>();
-    protected final Reference2ObjectMap<DatabaseSpec<?, ?>, KVTransaction<?,?>> transactions = new Reference2ObjectOpenHashMap<>();
+    protected final Reference2ObjectMap<DatabaseSpec<?, ?>, KVDatabase<?, ?>> databases = new Reference2ObjectOpenHashMap<>();
+    protected final Reference2ObjectMap<DatabaseSpec<?, ?>, KVTransaction<?, ?>> transactions = new Reference2ObjectOpenHashMap<>();
 
     protected final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     protected final int maxCommitTries = 3;
@@ -67,7 +67,7 @@ public class LMDBInstance implements IDBInstance {
     @Override
     @SuppressWarnings("unchecked")
     public <K, V> IKVDatabase<K, V> getDatabase(DatabaseSpec<K, V> spec) {
-        KVDatabase<?,?> database = this.databases.get(spec);
+        KVDatabase<?, ?> database = this.databases.get(spec);
 
         if (database == null) {
             throw new NullPointerException("No database is registered for spec " + spec);
@@ -79,7 +79,7 @@ public class LMDBInstance implements IDBInstance {
     @Override
     @SuppressWarnings("unchecked")
     public <K, V> IKVTransaction<K, V> getTransaction(DatabaseSpec<K, V> spec) {
-        KVTransaction<?,?> transaction = this.transactions.get(spec);
+        KVTransaction<?, ?> transaction = this.transactions.get(spec);
 
         if (transaction == null) {
             throw new NullPointerException("No transaction is registered for spec " + spec);

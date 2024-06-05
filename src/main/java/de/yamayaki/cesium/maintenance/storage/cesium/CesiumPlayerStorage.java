@@ -28,7 +28,7 @@ public class CesiumPlayerStorage implements IPlayerStorage {
     public List<UUID> getAllPlayers() {
         final List<UUID> list = new ArrayList<>();
 
-        try(final ICloseableIterator<UUID> crs = this.database.getDatabase(PlayerDatabaseSpecs.STATISTICS).getIterator()) {
+        try (final ICloseableIterator<UUID> crs = this.database.getDatabase(PlayerDatabaseSpecs.STATISTICS).getIterator()) {
             while (crs.hasNext()) {
                 list.add(crs.next());
             }
