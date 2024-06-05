@@ -3,7 +3,7 @@ package de.yamayaki.cesium.mixin.core.storage;
 import de.yamayaki.cesium.accessor.DatabaseActions;
 import de.yamayaki.cesium.accessor.DatabaseSetter;
 import de.yamayaki.cesium.accessor.SpecificationSetter;
-import de.yamayaki.cesium.common.db.LMDBInstance;
+import de.yamayaki.cesium.api.db.IDBInstance;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import net.minecraft.world.level.chunk.storage.IOWorker;
 import net.minecraft.world.level.chunk.storage.SimpleRegionStorage;
@@ -18,8 +18,8 @@ public class MixinSimpleRegionStorage implements DatabaseSetter, SpecificationSe
     private IOWorker worker;
 
     @Override
-    public void cesium$setStorage(LMDBInstance lmdbInstance) {
-        ((DatabaseSetter) this.worker).cesium$setStorage(lmdbInstance);
+    public void cesium$setStorage(IDBInstance dbInstance) {
+        ((DatabaseSetter) this.worker).cesium$setStorage(dbInstance);
     }
 
     @Override

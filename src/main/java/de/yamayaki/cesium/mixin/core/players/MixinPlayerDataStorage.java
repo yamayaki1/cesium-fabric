@@ -3,7 +3,7 @@ package de.yamayaki.cesium.mixin.core.players;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import de.yamayaki.cesium.accessor.DatabaseSetter;
-import de.yamayaki.cesium.common.db.LMDBInstance;
+import de.yamayaki.cesium.api.db.IDBInstance;
 import de.yamayaki.cesium.common.db.spec.impl.PlayerDatabaseSpecs;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
@@ -24,7 +24,7 @@ import java.util.Optional;
 @Mixin(PlayerDataStorage.class)
 public class MixinPlayerDataStorage implements DatabaseSetter {
     @Unique
-    private LMDBInstance database;
+    private IDBInstance database;
 
     @Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Ljava/io/File;mkdirs()Z"))
     private boolean disableMkdirs(File file) {
@@ -32,7 +32,7 @@ public class MixinPlayerDataStorage implements DatabaseSetter {
     }
 
     @Override
-    public void cesium$setStorage(LMDBInstance storage) {
+    public void cesium$setStorage(IDBInstance storage) {
         this.database = storage;
     }
 

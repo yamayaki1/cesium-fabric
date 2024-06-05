@@ -3,7 +3,7 @@ package de.yamayaki.cesium.mixin.core.storage;
 import de.yamayaki.cesium.accessor.DatabaseActions;
 import de.yamayaki.cesium.accessor.DatabaseSetter;
 import de.yamayaki.cesium.accessor.SpecificationSetter;
-import de.yamayaki.cesium.common.db.LMDBInstance;
+import de.yamayaki.cesium.api.db.IDBInstance;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.StreamTagVisitor;
@@ -26,7 +26,7 @@ public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSett
     private RegionFileStorage storage;
 
     @Unique
-    private LMDBInstance lmdbStorage;
+    private IDBInstance database;
 
     @Unique
     private DatabaseSpec<ChunkPos, CompoundTag> databaseSpec;
@@ -41,7 +41,7 @@ public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSett
     @Redirect(method = "method_27943", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/RegionFileStorage;read(Lnet/minecraft/world/level/ChunkPos;)Lnet/minecraft/nbt/CompoundTag;"))
     private CompoundTag cesium$read(RegionFileStorage instance, ChunkPos chunkPos) throws IOException {
         if (this.isCesium) {
-            return this.lmdbStorage
+            return this.database
                     .getDatabase(this.databaseSpec)
                     .getValue(chunkPos);
         } else {
@@ -56,7 +56,7 @@ public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSett
     @Redirect(method = "method_39801", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/RegionFileStorage;scanChunk(Lnet/minecraft/world/level/ChunkPos;Lnet/minecraft/nbt/StreamTagVisitor;)V"))
     private void cesium$scanChunk(RegionFileStorage instance, ChunkPos chunkPos, StreamTagVisitor streamTagVisitor) throws IOException {
         if (this.isCesium) {
-            this.lmdbStorage
+            this.database
                     .getDatabase(this.databaseSpec)
                     .scan(chunkPos, streamTagVisitor);
         } else {
@@ -78,7 +78,7 @@ public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSett
     @Redirect(method = "runStore", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/RegionFileStorage;write(Lnet/minecraft/world/level/ChunkPos;Lnet/minecraft/nbt/CompoundTag;)V"))
     private void cesium$write(RegionFileStorage instance, ChunkPos chunkPos, CompoundTag compoundTag) throws IOException {
         if (this.isCesium) {
-            this.lmdbStorage
+            this.database
                     .getTransaction(this.databaseSpec)
                     .add(chunkPos, compoundTag);
         } else {
@@ -94,17 +94,17 @@ public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSett
     }
 
     public void cesium$flush() {
-        this.lmdbStorage.flushChanges();
+        this.database.flushChanges();
     }
 
     public void cesium$close() {
-        this.lmdbStorage.close();
+        this.database.close();
     }
 
     @Override
-    public void cesium$setStorage(LMDBInstance lmdbInstance) {
+    public void cesium$setStorage(IDBInstance dbInstance) {
         this.isCesium = true;
-        this.lmdbStorage = lmdbInstance;
+        this.database = dbInstance;
 
         try {
             this.storage.close();

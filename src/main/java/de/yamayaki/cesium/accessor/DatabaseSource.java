@@ -1,7 +1,7 @@
 package de.yamayaki.cesium.accessor;
 
-import de.yamayaki.cesium.common.db.LMDBInstance;
+import de.yamayaki.cesium.api.db.IDBInstance;
 
 public interface DatabaseSource {
-    LMDBInstance cesium$getStorage();
+    IDBInstance cesium$getStorage();
 }

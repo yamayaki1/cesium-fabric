@@ -1,12 +1,13 @@
 package de.yamayaki.cesium.common.db;
 
+import de.yamayaki.cesium.api.db.IKVTransaction;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import org.lmdbjava.Txn;
 
 import java.io.IOException;
 
-public class KVTransaction<K, V> {
+public class KVTransaction<K, V> implements IKVTransaction<K, V> {
     private final KVDatabase<K, V> storage;
 
     private final Object2ReferenceMap<K, byte[]> pending = new Object2ReferenceOpenHashMap<>();
@@ -16,6 +17,7 @@ public class KVTransaction<K, V> {
         this.storage = storage;
     }
 
+    @Override
     public void add(K key, V value) {
         try {
             byte[] data = null;

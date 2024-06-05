@@ -3,6 +3,8 @@ package de.yamayaki.cesium.mixin.core.upgrader;
 import de.yamayaki.cesium.accessor.DatabaseActions;
 import de.yamayaki.cesium.accessor.DatabaseSetter;
 import de.yamayaki.cesium.accessor.SpecificationSetter;
+import de.yamayaki.cesium.api.db.ICloseableIterator;
+import de.yamayaki.cesium.api.db.IDBInstance;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import de.yamayaki.cesium.common.db.spec.impl.WorldDatabaseSpecs;
@@ -12,7 +14,6 @@ import net.minecraft.util.worldupdate.WorldUpgrader;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.storage.RegionStorageInfo;
-import org.lmdbjava.Cursor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -35,7 +36,7 @@ public abstract class MixinWorldUpgrader {
     protected abstract boolean processOnePosition(ResourceKey<Level> resourceKey, AutoCloseable autoCloseable, ChunkPos chunkPos);
 
     @Unique
-    private LMDBInstance tmpLMDBInstance;
+    private IDBInstance tmpDatabase;
 
     @Unique
     private DatabaseSpec<ChunkPos, CompoundTag> tmpSpec;
@@ -66,12 +67,12 @@ public abstract class MixinWorldUpgrader {
 
     @Inject(method = "getDimensionsToUpgrade", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/worldupdate/WorldUpgrader$AbstractUpgrader;getFilesToProcess(Lnet/minecraft/world/level/chunk/storage/RegionStorageInfo;Ljava/nio/file/Path;)Ljava/util/ListIterator;", shift = At.Shift.BY), locals = LocalCapture.CAPTURE_FAILEXCEPTION)
     public <T extends AutoCloseable> void cesiumCreate(CallbackInfoReturnable<List<WorldUpgrader.DimensionToUpgrade<T>>> cir, List list, Iterator var2, ResourceKey resourceKey, RegionStorageInfo regionStorageInfo, Path path, AutoCloseable autoCloseable) {
-        LMDBInstance lmdbInstance = new LMDBInstance(path.getParent(), "chunks", new DatabaseSpec[]{
+        IDBInstance dbInstance = new LMDBInstance(path.getParent(), "chunks", new DatabaseSpec[]{
                 WorldDatabaseSpecs.CHUNK_DATA,
                 WorldDatabaseSpecs.POI,
                 WorldDatabaseSpecs.ENTITY
         });
-        tmpLMDBInstance = lmdbInstance;
+        tmpDatabase = dbInstance;
 
         DatabaseSpec<ChunkPos, CompoundTag> databaseSpec = switch (regionStorageInfo.type()) {
             case "entities" -> WorldDatabaseSpecs.ENTITY;
@@ -81,7 +82,7 @@ public abstract class MixinWorldUpgrader {
         };
         tmpSpec = databaseSpec;
 
-        ((DatabaseSetter) autoCloseable).cesium$setStorage(lmdbInstance);
+        ((DatabaseSetter) autoCloseable).cesium$setStorage(dbInstance);
         if (autoCloseable instanceof SpecificationSetter) {
             ((SpecificationSetter) autoCloseable).cesium$setSpec(databaseSpec);
         }
@@ -89,31 +90,24 @@ public abstract class MixinWorldUpgrader {
 
     @Redirect(method = "getFilesToProcess", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/worldupdate/WorldUpgrader$AbstractUpgrader;getAllChunkPositions(Lnet/minecraft/world/level/chunk/storage/RegionStorageInfo;Ljava/nio/file/Path;)Ljava/util/List;"))
     public List<WorldUpgrader.FileToUpgrade> cesiumGetChunks(RegionStorageInfo regionStorageInfo, Path path) {
-        final Cursor<byte[]> cursor = tmpLMDBInstance.getDatabase(tmpSpec)
-                .getIterator();
-
         final Map<String, List<ChunkPos>> regionList = new HashMap<>();
 
-        boolean exists = cursor.first();
-        while (exists) {
-            final ChunkPos chunkPos = tmpLMDBInstance.getDatabase(tmpSpec)
-                    .getKeySerializer()
-                    .deserializeKey(cursor.key());
+        try(final ICloseableIterator<ChunkPos> crs = tmpDatabase.getDatabase(tmpSpec).getIterator()) {
+            while(crs.hasNext()) {
+                final ChunkPos chunkPos = crs.next();
+                final String regionKey = chunkPos.getRegionX() + "." + chunkPos.getRegionZ();
 
-            final String regionKey = chunkPos.getRegionX() + "." + chunkPos.getRegionZ();
+                if (!regionList.containsKey(regionKey)) {
+                    regionList.put(regionKey, new ArrayList<>());
+                }
 
-            if (!regionList.containsKey(regionKey)) {
-                regionList.put(regionKey, new ArrayList<>());
+                regionList.get(regionKey).add(chunkPos);
             }
-
-            regionList.get(regionKey).add(chunkPos);
-
-            exists = cursor.next();
+        } catch (final Throwable t) {
+            throw new RuntimeException("Could not iterate on cursor.", t);
         }
 
-        cursor.close();
-
-        tmpLMDBInstance = null;
+        tmpDatabase = null;
         tmpSpec = null;
 
         return regionList.values().stream().map(list -> new WorldUpgrader.FileToUpgrade(null, list)).toList();

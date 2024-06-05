@@ -1,6 +1,7 @@
 package de.yamayaki.cesium.mixin.core.chunks;
 
 import de.yamayaki.cesium.accessor.DatabaseSource;
+import de.yamayaki.cesium.api.db.IDBInstance;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import de.yamayaki.cesium.common.db.spec.impl.WorldDatabaseSpecs;
@@ -24,7 +25,7 @@ import java.util.concurrent.Executor;
 @Mixin(ServerLevel.class)
 public class MixinServerLevel implements DatabaseSource {
     @Unique
-    private LMDBInstance database;
+    private IDBInstance database;
 
     @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getFixerUpper()Lcom/mojang/datafixers/DataFixer;", shift = At.Shift.AFTER))
     public void initCesiumChunkStorage(MinecraftServer minecraftServer, Executor executor, LevelStorageSource.LevelStorageAccess levelStorageAccess, ServerLevelData serverLevelData, ResourceKey resourceKey, LevelStem levelStem, ChunkProgressListener chunkProgressListener, boolean bl, long l, List list, boolean bl2, RandomSequences randomSequences, CallbackInfo ci) {
@@ -41,7 +42,7 @@ public class MixinServerLevel implements DatabaseSource {
     }
 
     @Override
-    public LMDBInstance cesium$getStorage() {
+    public IDBInstance cesium$getStorage() {
         return this.database;
     }
 }

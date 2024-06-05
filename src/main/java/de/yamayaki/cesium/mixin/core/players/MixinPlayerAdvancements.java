@@ -4,7 +4,7 @@ import com.google.gson.JsonElement;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import de.yamayaki.cesium.accessor.DatabaseSetter;
-import de.yamayaki.cesium.common.db.LMDBInstance;
+import de.yamayaki.cesium.api.db.IDBInstance;
 import de.yamayaki.cesium.common.db.spec.impl.PlayerDatabaseSpecs;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerAdvancements;
@@ -38,7 +38,7 @@ public abstract class MixinPlayerAdvancements implements DatabaseSetter {
     protected abstract void load(ServerAdvancementManager serverAdvancementManager);
 
     @Unique
-    private LMDBInstance database;
+    private IDBInstance database;
 
     @Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerAdvancements;load(Lnet/minecraft/server/ServerAdvancementManager;)V"))
     private void killInitialLoad(PlayerAdvancements playerAdvancementTracker, ServerAdvancementManager advancementLoader) {
@@ -46,7 +46,7 @@ public abstract class MixinPlayerAdvancements implements DatabaseSetter {
     }
 
     @Override
-    public void cesium$setStorage(LMDBInstance storage) {
+    public void cesium$setStorage(IDBInstance storage) {
         this.database = storage;
 
         MinecraftServer server = this.player.getServer();

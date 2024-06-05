@@ -3,7 +3,7 @@ package de.yamayaki.cesium.mixin.core.chunks;
 import com.mojang.datafixers.DataFixer;
 import de.yamayaki.cesium.accessor.DatabaseSetter;
 import de.yamayaki.cesium.accessor.DatabaseSource;
-import de.yamayaki.cesium.common.db.LMDBInstance;
+import de.yamayaki.cesium.api.db.IDBInstance;
 import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.progress.ChunkProgressListener;
@@ -32,7 +32,7 @@ public class MixinChunkMap {
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void setCesiumDB(ServerLevel serverLevel, LevelStorageSource.LevelStorageAccess levelStorageAccess, DataFixer dataFixer, StructureTemplateManager structureTemplateManager, Executor executor, BlockableEventLoop<?> blockableEventLoop, LightChunkGetter lightChunkGetter, ChunkGenerator chunkGenerator, ChunkProgressListener chunkProgressListener, ChunkStatusUpdateListener chunkStatusUpdateListener, Supplier<?> supplier, int i, boolean bl, CallbackInfo ci) {
-        LMDBInstance database = ((DatabaseSource) serverLevel).cesium$getStorage();
+        IDBInstance database = ((DatabaseSource) serverLevel).cesium$getStorage();
 
         ((DatabaseSetter) this.poiManager)
                 .cesium$setStorage(database);

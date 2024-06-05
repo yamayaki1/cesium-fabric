@@ -2,6 +2,7 @@ package de.yamayaki.cesium.mixin.core.players;
 
 import de.yamayaki.cesium.accessor.DatabaseSetter;
 import de.yamayaki.cesium.accessor.DatabaseSource;
+import de.yamayaki.cesium.api.db.IDBInstance;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import de.yamayaki.cesium.common.db.spec.impl.PlayerDatabaseSpecs;
@@ -35,7 +36,7 @@ public class MixinPlayerList implements DatabaseSource {
     private PlayerDataStorage playerIo;
 
     @Unique
-    private LMDBInstance database;
+    private IDBInstance database;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void initCesiumPlayers(MinecraftServer minecraftServer, LayeredRegistryAccess<?> layeredRegistryAccess, PlayerDataStorage playerDataStorage, int i, CallbackInfo ci) {
@@ -62,7 +63,7 @@ public class MixinPlayerList implements DatabaseSource {
     }
 
     @Override
-    public LMDBInstance cesium$getStorage() {
+    public IDBInstance cesium$getStorage() {
         return this.database;
     }
 }

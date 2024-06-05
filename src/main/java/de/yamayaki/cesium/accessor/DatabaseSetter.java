@@ -1,7 +1,7 @@
 package de.yamayaki.cesium.accessor;
 
-import de.yamayaki.cesium.common.db.LMDBInstance;
+import de.yamayaki.cesium.api.db.IDBInstance;
 
 public interface DatabaseSetter {
-    void cesium$setStorage(LMDBInstance lmdbInstance);
+    void cesium$setStorage(IDBInstance dbInstance);
 }

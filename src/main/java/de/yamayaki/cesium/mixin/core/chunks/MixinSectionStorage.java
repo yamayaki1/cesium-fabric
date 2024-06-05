@@ -2,7 +2,7 @@ package de.yamayaki.cesium.mixin.core.chunks;
 
 import de.yamayaki.cesium.accessor.DatabaseSetter;
 import de.yamayaki.cesium.accessor.SpecificationSetter;
-import de.yamayaki.cesium.common.db.LMDBInstance;
+import de.yamayaki.cesium.api.db.IDBInstance;
 import de.yamayaki.cesium.common.db.spec.impl.WorldDatabaseSpecs;
 import net.minecraft.world.level.chunk.storage.SectionStorage;
 import net.minecraft.world.level.chunk.storage.SimpleRegionStorage;
@@ -19,8 +19,8 @@ public class MixinSectionStorage<R> implements DatabaseSetter {
     private SimpleRegionStorage simpleRegionStorage;
 
     @Override
-    public void cesium$setStorage(LMDBInstance lmdbInstance) {
-        ((DatabaseSetter) this.simpleRegionStorage).cesium$setStorage(lmdbInstance);
+    public void cesium$setStorage(IDBInstance dbInstance) {
+        ((DatabaseSetter) this.simpleRegionStorage).cesium$setStorage(dbInstance);
         ((SpecificationSetter) this.simpleRegionStorage).cesium$setSpec(WorldDatabaseSpecs.POI);
     }
 }

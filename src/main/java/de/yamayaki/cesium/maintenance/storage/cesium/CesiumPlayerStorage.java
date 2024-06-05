@@ -1,11 +1,12 @@
 package de.yamayaki.cesium.maintenance.storage.cesium;
 
+import de.yamayaki.cesium.api.db.ICloseableIterator;
+import de.yamayaki.cesium.api.db.IDBInstance;
 import de.yamayaki.cesium.common.db.LMDBInstance;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import de.yamayaki.cesium.common.db.spec.impl.PlayerDatabaseSpecs;
 import de.yamayaki.cesium.maintenance.storage.IPlayerStorage;
 import net.minecraft.nbt.CompoundTag;
-import org.lmdbjava.Cursor;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class CesiumPlayerStorage implements IPlayerStorage {
-    private final LMDBInstance database;
+    private final IDBInstance database;
 
     public CesiumPlayerStorage(final Path basePath) {
         this.database = new LMDBInstance(basePath, "players", new DatabaseSpec[]{
@@ -27,20 +28,14 @@ public class CesiumPlayerStorage implements IPlayerStorage {
     public List<UUID> getAllPlayers() {
         final List<UUID> list = new ArrayList<>();
 
-        final Cursor<byte[]> cursor = this.database.getDatabase(PlayerDatabaseSpecs.STATISTICS)
-                .getIterator();
-
-        boolean exists = cursor.first();
-        while (exists) {
-            final UUID uid = this.database.getDatabase(PlayerDatabaseSpecs.STATISTICS)
-                    .getKeySerializer()
-                    .deserializeKey(cursor.key());
-
-            list.add(uid);
-            exists = cursor.next();
+        try(final ICloseableIterator<UUID> crs = this.database.getDatabase(PlayerDatabaseSpecs.STATISTICS).getIterator()) {
+            while (crs.hasNext()) {
+                list.add(crs.next());
+            }
+        } catch (final Throwable t) {
+            throw new RuntimeException("Could not iterate on cursor.", t);
         }
 
-        cursor.close();
         return list;
     }
 

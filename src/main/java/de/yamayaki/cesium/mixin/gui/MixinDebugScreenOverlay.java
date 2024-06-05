@@ -2,7 +2,7 @@ package de.yamayaki.cesium.mixin.gui;
 
 import de.yamayaki.cesium.CesiumMod;
 import de.yamayaki.cesium.accessor.DatabaseSource;
-import de.yamayaki.cesium.common.db.LMDBInstance;
+import de.yamayaki.cesium.api.db.IDBInstance;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.DebugScreenOverlay;
 import net.minecraft.resources.ResourceKey;
@@ -41,9 +41,9 @@ public class MixinDebugScreenOverlay {
             return;
         }
 
-        final LMDBInstance lmdbInstance = ((DatabaseSource) serverLevel)
+        final IDBInstance dbInstance = ((DatabaseSource) serverLevel)
                 .cesium$getStorage();
-        final List<Stat> stats = lmdbInstance.getStats();
+        final List<Stat> stats = dbInstance.getStats();
 
         final int ms_depth = stats.stream().mapToInt(es -> es.depth).max().orElse(0);
         final long ms_branch_pages = stats.stream().mapToLong(es -> es.branchPages).sum();

@@ -1,5 +1,7 @@
 package de.yamayaki.cesium.common.db;
 
+import de.yamayaki.cesium.api.db.ICloseableIterator;
+import de.yamayaki.cesium.api.db.IKVDatabase;
 import de.yamayaki.cesium.common.db.serializer.DefaultSerializers;
 import de.yamayaki.cesium.common.db.serializer.KeySerializer;
 import de.yamayaki.cesium.common.db.serializer.ValueSerializer;
@@ -15,7 +17,7 @@ import org.lmdbjava.Txn;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class KVDatabase<K, V> {
+public class KVDatabase<K, V> implements IKVDatabase<K, V> {
     private final LMDBInstance storage;
 
     private final Env<byte[]> env;
@@ -37,6 +39,7 @@ public class KVDatabase<K, V> {
         this.compressor = spec.getCompressor();
     }
 
+    @Override
     public V getValue(K key) {
         ReentrantReadWriteLock lock = this.storage.getLock();
         lock.readLock()
@@ -69,6 +72,7 @@ public class KVDatabase<K, V> {
     }
 
     //idea by https://github.com/mo0dss/radon-fabric
+    @Override
     @SuppressWarnings("unchecked")
     public <T> void scan(K key, T scanner) {
         if (!(this.valueSerializer instanceof Scannable<?>)) {
@@ -108,14 +112,17 @@ public class KVDatabase<K, V> {
         this.storage.isDirty = true;
     }
 
+    @Override
     public KeySerializer<K> getKeySerializer() {
         return this.keySerializer;
     }
 
+    @Override
     public ValueSerializer<V> getValueSerializer() {
         return this.valueSerializer;
     }
 
+    @Override
     public StreamCompressor getCompressor() {
         return this.compressor;
     }
@@ -128,8 +135,10 @@ public class KVDatabase<K, V> {
         this.dbi.delete(txn, this.keySerializer.serializeKey(key));
     }
 
-    public Cursor<byte[]> getIterator() {
-        return this.dbi.openCursor(this.env.txnRead());
+    @Override
+    public ICloseableIterator<K> getIterator() {
+        final Cursor<byte[]> cursor = this.dbi.openCursor(this.env.txnRead());
+        return new CursorIterator<>(cursor, this.keySerializer);
     }
 
     public Stat getStats() {

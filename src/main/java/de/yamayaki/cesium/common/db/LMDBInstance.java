@@ -1,6 +1,9 @@
 package de.yamayaki.cesium.common.db;
 
 import de.yamayaki.cesium.CesiumMod;
+import de.yamayaki.cesium.api.db.IDBInstance;
+import de.yamayaki.cesium.api.db.IKVDatabase;
+import de.yamayaki.cesium.api.db.IKVTransaction;
 import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
@@ -21,11 +24,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class LMDBInstance {
+public class LMDBInstance implements IDBInstance {
     protected final Env<byte[]> env;
 
-    protected final Reference2ObjectMap<DatabaseSpec<?, ?>, KVDatabase<?, ?>> databases = new Reference2ObjectOpenHashMap<>();
-    protected final Reference2ObjectMap<DatabaseSpec<?, ?>, KVTransaction<?, ?>> transactions = new Reference2ObjectOpenHashMap<>();
+    protected final Reference2ObjectMap<DatabaseSpec<?, ?>, KVDatabase<?,?>> databases = new Reference2ObjectOpenHashMap<>();
+    protected final Reference2ObjectMap<DatabaseSpec<?, ?>, KVTransaction<?,?>> transactions = new Reference2ObjectOpenHashMap<>();
 
     protected final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     protected final int maxCommitTries = 3;
@@ -61,28 +64,31 @@ public class LMDBInstance {
         }
     }
 
+    @Override
     @SuppressWarnings("unchecked")
-    public <K, V> KVDatabase<K, V> getDatabase(DatabaseSpec<K, V> spec) {
-        KVDatabase<?, ?> database = this.databases.get(spec);
+    public <K, V> IKVDatabase<K, V> getDatabase(DatabaseSpec<K, V> spec) {
+        KVDatabase<?,?> database = this.databases.get(spec);
 
         if (database == null) {
             throw new NullPointerException("No database is registered for spec " + spec);
         }
 
-        return (KVDatabase<K, V>) database;
+        return (IKVDatabase<K, V>) database;
     }
 
+    @Override
     @SuppressWarnings("unchecked")
-    public <K, V> KVTransaction<K, V> getTransaction(DatabaseSpec<K, V> spec) {
-        KVTransaction<?, ?> transaction = this.transactions.get(spec);
+    public <K, V> IKVTransaction<K, V> getTransaction(DatabaseSpec<K, V> spec) {
+        KVTransaction<?,?> transaction = this.transactions.get(spec);
 
         if (transaction == null) {
             throw new NullPointerException("No transaction is registered for spec " + spec);
         }
 
-        return (KVTransaction<K, V>) transaction;
+        return (IKVTransaction<K, V>) transaction;
     }
 
+    @Override
     public void flushChanges() {
         if (!this.isDirty) {
             return;
@@ -187,6 +193,7 @@ public class LMDBInstance {
         }
     }
 
+    @Override
     public List<Stat> getStats() {
         this.lock.readLock()
                 .lock();
@@ -202,14 +209,17 @@ public class LMDBInstance {
 
     }
 
-    ReentrantReadWriteLock getLock() {
+    @Override
+    public ReentrantReadWriteLock getLock() {
         return this.lock;
     }
 
+    @Override
     public boolean closed() {
         return this.env.isClosed();
     }
 
+    @Override
     public void close() {
         this.flushChanges();
 
