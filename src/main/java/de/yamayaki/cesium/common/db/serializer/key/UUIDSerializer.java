@@ -2,35 +2,33 @@ package de.yamayaki.cesium.common.db.serializer.key;
 
 import de.yamayaki.cesium.common.db.serializer.KeySerializer;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.util.UUID;
 
 public class UUIDSerializer implements KeySerializer<UUID> {
     @Override
-    public byte[] serializeKey(UUID value) {
-        try (ByteArrayOutputStream bytes = new ByteArrayOutputStream(16); DataOutputStream out = new DataOutputStream(bytes)) {
-            out.writeLong(value.getLeastSignificantBits());
-            out.writeLong(value.getMostSignificantBits());
+    public byte[] serializeKey(final UUID value) {
+        final byte[] array = new byte[16];
 
-            return bytes.toByteArray();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to serialize UUID", e);
+        long least = value.getLeastSignificantBits();
+        for (int i = 7; i >= 0; i--) {
+            array[i] = (byte) (least & 0xffL);
+            least >>= 8;
         }
+
+        long most = value.getMostSignificantBits();
+        for (int i = 15; i >= 8; i--) {
+            array[i] = (byte) (most & 0xffL);
+            most >>= 8;
+        }
+
+        return array;
     }
 
     @Override
-    public UUID deserializeKey(byte[] array) {
-        try (ByteArrayInputStream bytes = new ByteArrayInputStream(array); DataInputStream in = new DataInputStream(bytes)) {
-            final long least = in.readLong();
-            final long most = in.readLong();
+    public UUID deserializeKey(final byte[] array) {
+        final long least = (array[0] & 0xFFL) << 56 | (array[1] & 0xFFL) << 48 | (array[2] & 0xFFL) << 40 | (array[3] & 0xFFL) << 32 | (array[4] & 0xFFL) << 24 | (array[5] & 0xFFL) << 16 | (array[6] & 0xFFL) << 8 | (array[7] & 0xFFL);
+        final long most = (array[8] & 0xFFL) << 56 | (array[9] & 0xFFL) << 48 | (array[10] & 0xFFL) << 40 | (array[11] & 0xFFL) << 32 | (array[12] & 0xFFL) << 24 | (array[13] & 0xFFL) << 16 | (array[14] & 0xFFL) << 8 | (array[15] & 0xFFL);
 
-            return new UUID(most, least);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to deserialize UUID", e);
-        }
+        return new UUID(most, least);
     }
 }
