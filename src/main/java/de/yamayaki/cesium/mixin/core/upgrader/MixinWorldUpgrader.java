@@ -1,13 +1,13 @@
 package de.yamayaki.cesium.mixin.core.upgrader;
 
-import de.yamayaki.cesium.accessor.DatabaseActions;
-import de.yamayaki.cesium.accessor.DatabaseSetter;
-import de.yamayaki.cesium.accessor.SpecificationSetter;
-import de.yamayaki.cesium.api.db.ICloseableIterator;
-import de.yamayaki.cesium.api.db.IDBInstance;
-import de.yamayaki.cesium.common.db.LMDBInstance;
-import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
-import de.yamayaki.cesium.common.db.spec.impl.WorldDatabaseSpecs;
+import de.yamayaki.cesium.api.accessor.DatabaseActions;
+import de.yamayaki.cesium.api.accessor.DatabaseSetter;
+import de.yamayaki.cesium.api.accessor.SpecificationSetter;
+import de.yamayaki.cesium.api.database.DatabaseSpec;
+import de.yamayaki.cesium.api.database.ICloseableIterator;
+import de.yamayaki.cesium.api.database.IDBInstance;
+import de.yamayaki.cesium.common.lmdb.LMDBInstance;
+import de.yamayaki.cesium.common.spec.WorldDatabaseSpecs;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.worldupdate.WorldUpgrader;

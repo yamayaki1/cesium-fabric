@@ -1,10 +1,10 @@
 package de.yamayaki.cesium.mixin.core.chunks;
 
-import de.yamayaki.cesium.accessor.DatabaseSetter;
-import de.yamayaki.cesium.accessor.DatabaseSource;
-import de.yamayaki.cesium.accessor.SpecificationSetter;
-import de.yamayaki.cesium.api.db.IDBInstance;
-import de.yamayaki.cesium.common.db.spec.impl.WorldDatabaseSpecs;
+import de.yamayaki.cesium.api.accessor.DatabaseSetter;
+import de.yamayaki.cesium.api.accessor.DatabaseSource;
+import de.yamayaki.cesium.api.accessor.SpecificationSetter;
+import de.yamayaki.cesium.api.database.IDBInstance;
+import de.yamayaki.cesium.common.spec.WorldDatabaseSpecs;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.chunk.storage.EntityStorage;
 import net.minecraft.world.level.chunk.storage.SimpleRegionStorage;

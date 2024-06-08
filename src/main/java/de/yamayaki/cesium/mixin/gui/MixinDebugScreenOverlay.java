@@ -1,8 +1,8 @@
 package de.yamayaki.cesium.mixin.gui;
 
 import de.yamayaki.cesium.CesiumMod;
-import de.yamayaki.cesium.accessor.DatabaseSource;
-import de.yamayaki.cesium.api.db.IDBInstance;
+import de.yamayaki.cesium.api.accessor.DatabaseSource;
+import de.yamayaki.cesium.api.database.IDBInstance;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.DebugScreenOverlay;
 import net.minecraft.resources.ResourceKey;

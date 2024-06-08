@@ -2,9 +2,9 @@ package de.yamayaki.cesium.mixin.core.players;
 
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import de.yamayaki.cesium.accessor.DatabaseSetter;
-import de.yamayaki.cesium.api.db.IDBInstance;
-import de.yamayaki.cesium.common.db.spec.impl.PlayerDatabaseSpecs;
+import de.yamayaki.cesium.api.accessor.DatabaseSetter;
+import de.yamayaki.cesium.api.database.IDBInstance;
+import de.yamayaki.cesium.common.spec.PlayerDatabaseSpecs;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.world.entity.player.Player;

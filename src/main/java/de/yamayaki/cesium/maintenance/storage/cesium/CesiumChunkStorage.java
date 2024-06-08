@@ -1,11 +1,11 @@
 package de.yamayaki.cesium.maintenance.storage.cesium;
 
 import de.yamayaki.cesium.CesiumMod;
-import de.yamayaki.cesium.api.db.ICloseableIterator;
-import de.yamayaki.cesium.api.db.IDBInstance;
-import de.yamayaki.cesium.common.db.LMDBInstance;
-import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
-import de.yamayaki.cesium.common.db.spec.impl.WorldDatabaseSpecs;
+import de.yamayaki.cesium.api.database.DatabaseSpec;
+import de.yamayaki.cesium.api.database.ICloseableIterator;
+import de.yamayaki.cesium.api.database.IDBInstance;
+import de.yamayaki.cesium.common.lmdb.LMDBInstance;
+import de.yamayaki.cesium.common.spec.WorldDatabaseSpecs;
 import de.yamayaki.cesium.maintenance.storage.IChunkStorage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;

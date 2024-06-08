@@ -1,10 +1,10 @@
 package de.yamayaki.cesium.maintenance.storage.cesium;
 
-import de.yamayaki.cesium.api.db.ICloseableIterator;
-import de.yamayaki.cesium.api.db.IDBInstance;
-import de.yamayaki.cesium.common.db.LMDBInstance;
-import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
-import de.yamayaki.cesium.common.db.spec.impl.PlayerDatabaseSpecs;
+import de.yamayaki.cesium.api.database.DatabaseSpec;
+import de.yamayaki.cesium.api.database.ICloseableIterator;
+import de.yamayaki.cesium.api.database.IDBInstance;
+import de.yamayaki.cesium.common.lmdb.LMDBInstance;
+import de.yamayaki.cesium.common.spec.PlayerDatabaseSpecs;
 import de.yamayaki.cesium.maintenance.storage.IPlayerStorage;
 import net.minecraft.nbt.CompoundTag;
 

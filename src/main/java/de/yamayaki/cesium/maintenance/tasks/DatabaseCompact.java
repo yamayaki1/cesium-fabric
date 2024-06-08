@@ -2,9 +2,10 @@ package de.yamayaki.cesium.maintenance.tasks;
 
 import com.mojang.logging.LogUtils;
 import de.yamayaki.cesium.CesiumMod;
-import de.yamayaki.cesium.common.db.LMDBInstance;
-import de.yamayaki.cesium.common.db.spec.DatabaseSpec;
-import de.yamayaki.cesium.common.db.spec.impl.WorldDatabaseSpecs;
+import de.yamayaki.cesium.api.database.DatabaseSpec;
+import de.yamayaki.cesium.api.database.IDBInstance;
+import de.yamayaki.cesium.common.lmdb.LMDBInstance;
+import de.yamayaki.cesium.common.spec.WorldDatabaseSpecs;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -96,13 +97,13 @@ public class DatabaseCompact implements ICesiumTask {
         final Path originalPath = dimensionPath.resolve("chunks" + CesiumMod.getFileEnding());
         final Path copyPath = dimensionPath.resolve("chunks.copy");
 
-        final LMDBInstance lmdbInstance = openDatabase(dimensionPath);
+        final IDBInstance dbInstance = openDatabase(dimensionPath);
 
         this.status.set("Compacting level data for " + level.location().getPath());
 
         try {
-            lmdbInstance.createCopy(copyPath);
-            lmdbInstance.close();
+            dbInstance.createCopy(copyPath);
+            dbInstance.close();
 
             if (Files.isRegularFile(copyPath) && Files.isRegularFile(originalPath)) {
                 Files.move(copyPath, originalPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
@@ -110,13 +111,13 @@ public class DatabaseCompact implements ICesiumTask {
         } catch (final Throwable t) {
             throw new RuntimeException("Failed to compact level.", t);
         } finally {
-            if (!lmdbInstance.closed()) {
-                lmdbInstance.close();
+            if (!dbInstance.closed()) {
+                dbInstance.close();
             }
         }
     }
 
-    private static @NotNull LMDBInstance openDatabase(final Path dimensionPath) {
+    private static @NotNull IDBInstance openDatabase(final Path dimensionPath) {
         return new LMDBInstance(dimensionPath, "chunks", new DatabaseSpec[]{
                 WorldDatabaseSpecs.CHUNK_DATA,
                 WorldDatabaseSpecs.POI,
