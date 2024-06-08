@@ -11,7 +11,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
-public class ConvHelper {
+public class FileHelper {
     public static List<File> resolveAllEnding(final Path path, final String ending) {
         final File directory = path.toFile();
         final File[] files = directory.listFiles((dir, name) -> name.endsWith(ending));

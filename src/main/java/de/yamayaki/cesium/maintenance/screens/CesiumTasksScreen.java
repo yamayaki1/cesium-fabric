@@ -1,8 +1,7 @@
-package de.yamayaki.cesium.maintenance.storage;
+package de.yamayaki.cesium.maintenance.screens;
 
 import de.yamayaki.cesium.CesiumMod;
-import de.yamayaki.cesium.maintenance.CesiumWorkScreen;
-import de.yamayaki.cesium.maintenance.tasks.ICesiumTask;
+import de.yamayaki.cesium.maintenance.AbstractTask;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -34,15 +33,15 @@ public class CesiumTasksScreen extends Screen {
         this.callback = callback;
 
         this.layout.addChild(Button.builder(Component.literal("Anvil → Cesium"), buttonx -> {
-            this.minecraft.setScreen(new CesiumWorkScreen(ICesiumTask.CesiumTask.TO_CESIUM, this.levelAccess, this.createRegistry(), this.callback));
+            this.minecraft.setScreen(new CesiumWorkScreen(AbstractTask.Task.TO_CESIUM, this.levelAccess, this.createRegistry(), this.callback));
         }).width(200).build());
 
         this.layout.addChild(Button.builder(Component.literal("Cesium → Anvil"), buttonx -> {
-            this.minecraft.setScreen(new CesiumWorkScreen(ICesiumTask.CesiumTask.TO_ANVIL, this.levelAccess, this.createRegistry(), this.callback));
+            this.minecraft.setScreen(new CesiumWorkScreen(AbstractTask.Task.TO_ANVIL, this.levelAccess, this.createRegistry(), this.callback));
         }).width(200).build());
 
         this.layout.addChild(Button.builder(Component.literal("Compact Database"), buttonx -> {
-            this.minecraft.setScreen(new CesiumWorkScreen(ICesiumTask.CesiumTask.COMPACT, this.levelAccess, this.createRegistry(), this.callback));
+            this.minecraft.setScreen(new CesiumWorkScreen(AbstractTask.Task.COMPACT, this.levelAccess, this.createRegistry(), this.callback));
         }).width(200).build());
 
         this.layout.addChild(new SpacerElement(200, 20));

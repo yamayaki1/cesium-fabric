@@ -2,8 +2,8 @@ package de.yamayaki.cesium.mixin.convert_server;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import de.yamayaki.cesium.CesiumMod;
+import de.yamayaki.cesium.maintenance.AbstractTask;
 import de.yamayaki.cesium.maintenance.tasks.DatabaseConvert;
-import de.yamayaki.cesium.maintenance.tasks.ICesiumTask;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
@@ -35,17 +35,17 @@ public class MixinMain {
         final boolean convertAnvil;
 
         if ((convertAnvil = optionSet.has(cesium$convertOptionAnvil)) || optionSet.has(cesium$convertOptionCesium)) {
-            final ICesiumTask.CesiumTask desiredCesiumTask = convertAnvil ? ICesiumTask.CesiumTask.TO_ANVIL : ICesiumTask.CesiumTask.TO_CESIUM;
-            doWorldConversion(desiredCesiumTask, levelAccess, registryAccess);
+            final AbstractTask.Task task = convertAnvil ? AbstractTask.Task.TO_ANVIL : AbstractTask.Task.TO_CESIUM;
+            doWorldConversion(task, levelAccess, registryAccess);
         }
     }
 
     @Unique
-    private static void doWorldConversion(final ICesiumTask.CesiumTask cesiumTask, final LevelStorageSource.LevelStorageAccess levelAccess, final RegistryAccess registryAccess) {
+    private static void doWorldConversion(final AbstractTask.Task task, final LevelStorageSource.LevelStorageAccess levelAccess, final RegistryAccess registryAccess) {
         final Logger logger = CesiumMod.logger();
         logger.info("Starting world conversion ...");
 
-        final DatabaseConvert databaseConvert = new DatabaseConvert(cesiumTask, levelAccess, registryAccess);
+        final DatabaseConvert databaseConvert = new DatabaseConvert(task, levelAccess, registryAccess);
 
         String previousStatus = null;
         String currentStatus;

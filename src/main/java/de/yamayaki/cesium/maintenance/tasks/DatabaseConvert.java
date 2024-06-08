@@ -1,6 +1,6 @@
 package de.yamayaki.cesium.maintenance.tasks;
 
-import com.mojang.logging.LogUtils;
+import de.yamayaki.cesium.maintenance.AbstractTask;
 import de.yamayaki.cesium.maintenance.storage.IChunkStorage;
 import de.yamayaki.cesium.maintenance.storage.IPlayerStorage;
 import de.yamayaki.cesium.maintenance.storage.anvil.AnvilChunkStorage;
@@ -9,13 +9,11 @@ import de.yamayaki.cesium.maintenance.storage.cesium.CesiumChunkStorage;
 import de.yamayaki.cesium.maintenance.storage.cesium.CesiumPlayerStorage;
 import net.minecraft.Util;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -23,54 +21,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
-public class DatabaseConvert implements ICesiumTask {
-    private final Logger LOGGER = LogUtils.getLogger();
+public class DatabaseConvert extends AbstractTask {
+    private final Task task;
 
-    private final CesiumTask desiredCesiumTask;
-    private final LevelStorageSource.LevelStorageAccess levelAccess;
-    private final List<ResourceKey<Level>> levels;
-
-    private final Thread workerThread;
-    private final AtomicBoolean running = new AtomicBoolean(true);
-
-    private final AtomicReference<String> status = new AtomicReference<>();
-
-    private final AtomicInteger totalElements = new AtomicInteger(0);
-    private final AtomicInteger currentElement = new AtomicInteger(0);
-    private final AtomicReference<ResourceKey<Level>> currentLevel = new AtomicReference<>(null);
-
-    public DatabaseConvert(final CesiumTask desiredCesiumTask, final LevelStorageSource.LevelStorageAccess levelStorageAccess, final RegistryAccess registryAccess) {
-        this.desiredCesiumTask = desiredCesiumTask;
-        this.levelAccess = levelStorageAccess;
-
-        this.levels = registryAccess
-                .registryOrThrow(Registries.LEVEL_STEM)
-                .registryKeySet()
-                .stream().map(Registries::levelStemToLevel)
-                .toList();
-
-        this.status.set("Loading required data into memory ...");
-
-        this.workerThread = createWorkerThread();
-        this.workerThread.start();
+    public DatabaseConvert(final Task task, final LevelStorageSource.LevelStorageAccess levelStorageAccess, final RegistryAccess registryAccess) {
+        super("Convert", levelStorageAccess, registryAccess);
+        this.task = task;
     }
 
-    private @NotNull Thread createWorkerThread() {
-        final Thread workerThread = new Thread(this::runTasks, "Cesium-Convert-Database");
-        workerThread.setDaemon(true);
-        workerThread.setUncaughtExceptionHandler((thread, throwable) -> {
-            LOGGER.error("Uncaught exception while converting world!", throwable);
-            this.running.set(false);
-        });
-
-        return workerThread;
-    }
-
-    private void runTasks() {
+    @Override
+    protected void runTasks() {
         this.copyPlayerData();
 
         for (final ResourceKey<Level> levelResourceKey : this.levels) {
@@ -78,21 +39,6 @@ public class DatabaseConvert implements ICesiumTask {
         }
 
         this.running.set(false);
-    }
-
-    @Override
-    public void cancelTask() {
-        this.running.set(false);
-
-        try {
-            this.workerThread.join();
-        } catch (InterruptedException ignored) {
-        }
-    }
-
-    @Override
-    public boolean running() {
-        return this.running.get();
     }
 
     private void copyPlayerData() {
@@ -174,43 +120,17 @@ public class DatabaseConvert implements ICesiumTask {
 
     private @NotNull IChunkStorage cStorage(final Path path, final boolean old) {
         if (!old) {
-            return this.desiredCesiumTask == CesiumTask.TO_ANVIL ? new AnvilChunkStorage(path) : new CesiumChunkStorage(path);
+            return this.task == Task.TO_ANVIL ? new AnvilChunkStorage(path) : new CesiumChunkStorage(path);
         } else {
-            return this.desiredCesiumTask == CesiumTask.TO_ANVIL ? new CesiumChunkStorage(path) : new AnvilChunkStorage(path);
+            return this.task == Task.TO_ANVIL ? new CesiumChunkStorage(path) : new AnvilChunkStorage(path);
         }
     }
 
     private @NotNull IPlayerStorage pStorage(final Path path, final boolean old) {
         if (!old) {
-            return this.desiredCesiumTask == CesiumTask.TO_ANVIL ? new AnvilPlayerStorage(path) : new CesiumPlayerStorage(path);
+            return this.task == Task.TO_ANVIL ? new AnvilPlayerStorage(path) : new CesiumPlayerStorage(path);
         } else {
-            return this.desiredCesiumTask == CesiumTask.TO_ANVIL ? new CesiumPlayerStorage(path) : new AnvilPlayerStorage(path);
+            return this.task == Task.TO_ANVIL ? new CesiumPlayerStorage(path) : new AnvilPlayerStorage(path);
         }
-    }
-
-    @Override
-    public String levelName() {
-        final ResourceKey<Level> curLevel = this.currentLevel.get();
-        return curLevel == null ? "<unnamed>" : curLevel.toString();
-    }
-
-    @Override
-    public String status() {
-        return this.status.get();
-    }
-
-    @Override
-    public int totalElements() {
-        return this.totalElements.get();
-    }
-
-    @Override
-    public int currentElement() {
-        return this.currentElement.get();
-    }
-
-    @Override
-    public double percentage() {
-        return this.currentElement() / (double) Math.max(this.totalElements(), 1);
     }
 }

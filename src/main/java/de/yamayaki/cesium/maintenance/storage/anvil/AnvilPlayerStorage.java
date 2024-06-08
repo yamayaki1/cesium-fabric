@@ -1,7 +1,7 @@
 package de.yamayaki.cesium.maintenance.storage.anvil;
 
 import de.yamayaki.cesium.CesiumMod;
-import de.yamayaki.cesium.maintenance.ConvHelper;
+import de.yamayaki.cesium.maintenance.FileHelper;
 import de.yamayaki.cesium.maintenance.storage.IPlayerStorage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
@@ -26,7 +26,7 @@ public class AnvilPlayerStorage implements IPlayerStorage {
 
     @Override
     public List<UUID> getAllPlayers() {
-        return ConvHelper.resolveAllEnding(this.playerData, ".dat").stream().map(file -> {
+        return FileHelper.resolveAllEnding(this.playerData, ".dat").stream().map(file -> {
             final String fileName = file.getName();
             final String uuid = fileName.substring(0, fileName.length() - 4);
 
@@ -78,9 +78,9 @@ public class AnvilPlayerStorage implements IPlayerStorage {
     public void setPlayerAdvancements(final UUID uuid, final String advancements) {
         try {
             final Path savePath = this.advancementsStorage.resolve(uuid.toString() + ".json");
-            ConvHelper.saveToFile(savePath, advancements);
+            FileHelper.saveToFile(savePath, advancements);
         } catch (IOException exception) {
-            CesiumMod.logger().warn("[ANVIL] Failed to load advancements for {}", uuid);
+            CesiumMod.logger().warn("[ANVIL] Failed to set advancements for {}", uuid);
         }
     }
 
@@ -89,7 +89,7 @@ public class AnvilPlayerStorage implements IPlayerStorage {
         String advancements = null;
         try {
             final Path savePath = this.advancementsStorage.resolve(uuid.toString() + ".json");
-            advancements = ConvHelper.getContents(savePath);
+            advancements = FileHelper.getContents(savePath);
         } catch (IOException exception) {
             CesiumMod.logger().warn("[ANVIL] Failed to load advancements for {}", uuid);
         }
@@ -101,9 +101,9 @@ public class AnvilPlayerStorage implements IPlayerStorage {
     public void setPlayerStatistics(final UUID uuid, final String statistics) {
         try {
             final Path savePath = this.statsStorage.resolve(uuid.toString() + ".json");
-            ConvHelper.saveToFile(savePath, statistics);
+            FileHelper.saveToFile(savePath, statistics);
         } catch (IOException exception) {
-            CesiumMod.logger().warn("[ANVIL] Failed to load advancements for {}", uuid);
+            CesiumMod.logger().warn("[ANVIL] Failed to save statistics for {}", uuid);
         }
     }
 
@@ -112,9 +112,9 @@ public class AnvilPlayerStorage implements IPlayerStorage {
         String statistics = null;
         try {
             final Path savePath = this.statsStorage.resolve(uuid.toString() + ".json");
-            statistics = ConvHelper.getContents(savePath);
+            statistics = FileHelper.getContents(savePath);
         } catch (IOException exception) {
-            CesiumMod.logger().warn("[ANVIL] Failed to load advancements for {}", uuid);
+            CesiumMod.logger().warn("[ANVIL] Failed to load statistics for {}", uuid);
         }
 
         return statistics;

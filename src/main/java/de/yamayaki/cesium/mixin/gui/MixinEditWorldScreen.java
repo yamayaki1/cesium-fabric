@@ -1,6 +1,6 @@
 package de.yamayaki.cesium.mixin.gui;
 
-import de.yamayaki.cesium.maintenance.storage.CesiumTasksScreen;
+import de.yamayaki.cesium.maintenance.screens.CesiumTasksScreen;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.layouts.LinearLayout;
