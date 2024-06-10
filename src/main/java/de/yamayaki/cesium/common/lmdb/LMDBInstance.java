@@ -31,7 +31,7 @@ public class LMDBInstance implements IDBInstance {
     protected final Reference2ObjectMap<DatabaseSpec<?, ?>, KVTransaction<?, ?>> transactions = new Reference2ObjectOpenHashMap<>();
 
     protected final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-    protected final int maxCommitTries = 3;
+    protected final int MAX_COMMIT_TRIES = 3;
     protected final int resizeStep;
 
     protected volatile boolean isDirty = false;
@@ -99,73 +99,69 @@ public class LMDBInstance implements IDBInstance {
 
         try {
             this.commitTransaction();
-        } finally {
             this.isDirty = false;
-
+        } finally {
             this.lock.writeLock()
                     .unlock();
         }
     }
 
     private void commitTransaction() {
-        boolean success = false;
-        int tries = 0;
+        this.snapshotCreate();
 
-        this.transactions.values()
-                .forEach(KVTransaction::createSnapshot);
-
-        while (!success && tries < maxCommitTries) {
-            tries++;
-
-            Iterator<KVTransaction<?, ?>> it = this.transactions.values()
-                    .iterator();
-
-            Txn<byte[]> txn = this.env.txnWrite();
-
-            try {
-                while (it.hasNext()) {
-                    try {
-                        KVTransaction<?, ?> transaction = it.next();
-                        transaction.addChanges(txn);
-                    } catch (LmdbException e) {
-                        if (e instanceof Env.MapFullException) {
-                            txn.abort();
-
-                            this.growMap();
-
-                            txn = this.env.txnWrite();
-                            it = this.transactions.values()
-                                    .iterator();
-                        } else {
-                            throw e;
-                        }
-                    }
-                }
-            } catch (Throwable t) {
-                txn.abort();
-
-                throw t;
-            }
-
-            try {
+        for (int tries = 0; tries < MAX_COMMIT_TRIES; tries++) {
+            try (final Txn<?> txn = this.prepareTransaction()) {
                 txn.commit();
-                success = true;
-            } catch (LmdbException e) {
-                if (e instanceof Env.MapFullException) {
-                    CesiumMod.logger().info("Commit of transaction failed; trying again ({}/{})", tries, this.maxCommitTries);
+
+                break;
+            } catch (final LmdbException l) {
+                if (l instanceof Env.MapFullException) {
                     this.growMap();
-                } else {
-                    throw e;
+
+                    tries--;
+                    continue;
                 }
+
+                CesiumMod.logger().info("Commit of transaction failed; trying again ({}/{}): {}", tries, this.MAX_COMMIT_TRIES, l.getMessage());
+            }
+
+            if (tries == (MAX_COMMIT_TRIES - 1)) {
+                throw new RuntimeException("Could not commit transactions!");
             }
         }
 
-        if (!success) {
-            throw new RuntimeException("Commit failed " + this.maxCommitTries + " times.");
+        this.snapshotClear();
+    }
+
+    private Txn<?> prepareTransaction() throws LmdbException {
+        final Iterator<KVTransaction<?, ?>> it = this.transactions.values()
+                .iterator();
+
+        final Txn<byte[]> txn = this.env.txnWrite();
+
+        try {
+            while (it.hasNext()) {
+                KVTransaction<?, ?> transaction = it.next();
+                transaction.addChanges(txn);
+            }
+        } catch (LmdbException l) {
+            txn.abort();
+            throw l;
         }
 
-        this.transactions.values()
-                .forEach(KVTransaction::clearSnapshot);
+        return txn;
+    }
+
+    private void snapshotCreate() {
+        for (final KVTransaction<?, ?> txn : this.transactions.values()) {
+            txn.createSnapshot();
+        }
+    }
+
+    private void snapshotClear() {
+        for (final KVTransaction<?, ?> txn : this.transactions.values()) {
+            txn.clearSnapshot();
+        }
     }
 
     private void growMap() {
