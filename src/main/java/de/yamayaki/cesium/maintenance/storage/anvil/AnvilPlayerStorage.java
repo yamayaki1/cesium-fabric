@@ -27,10 +27,15 @@ public class AnvilPlayerStorage implements IPlayerStorage {
     @Override
     public List<UUID> getAllPlayers() {
         return FileHelper.resolveAllEnding(this.playerData, ".dat").stream().map(file -> {
-            final String fileName = file.getName();
-            final String uuid = fileName.substring(0, fileName.length() - 4);
+            try {
+                final String fileName = file.getName();
+                final String uuid = fileName.substring(0, fileName.length() - 4);
 
-            return UUID.fromString(uuid);
+                return UUID.fromString(uuid);
+            } catch (final Throwable t) {
+                CesiumMod.logger().error("Could not resolve UUID from filename, ignoring ({})", file.getAbsolutePath());
+                throw t;
+            }
         }).toList();
     }
 
