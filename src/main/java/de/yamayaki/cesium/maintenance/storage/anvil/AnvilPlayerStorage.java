@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public class AnvilPlayerStorage implements IPlayerStorage {
@@ -31,12 +32,17 @@ public class AnvilPlayerStorage implements IPlayerStorage {
                 final String fileName = file.getName();
                 final String uuid = fileName.substring(0, fileName.length() - 4);
 
+                if (uuid.length() > 36 || uuid.length() < 32) {
+                    CesiumMod.logger().warn("Found non UUID player file in directory, ignoring ({})", file.getAbsolutePath());
+                    return null;
+                }
+
                 return UUID.fromString(uuid);
             } catch (final Throwable t) {
-                CesiumMod.logger().error("Could not resolve UUID from filename, ignoring ({})", file.getAbsolutePath());
+                CesiumMod.logger().error("Could not resolve UUID from filename, aborting ({})", file.getAbsolutePath());
                 throw t;
             }
-        }).toList();
+        }).filter(Objects::nonNull).toList();
     }
 
     @Override

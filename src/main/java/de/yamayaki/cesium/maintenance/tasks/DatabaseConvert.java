@@ -1,5 +1,6 @@
 package de.yamayaki.cesium.maintenance.tasks;
 
+import de.yamayaki.cesium.CesiumMod;
 import de.yamayaki.cesium.maintenance.AbstractTask;
 import de.yamayaki.cesium.maintenance.storage.IChunkStorage;
 import de.yamayaki.cesium.maintenance.storage.IPlayerStorage;
@@ -51,6 +52,9 @@ public class DatabaseConvert extends AbstractTask {
                 final IPlayerStorage _new = this.pStorage(playerDataPath, false)
         ) {
             final List<UUID> playerList = _old.getAllPlayers();
+
+            CesiumMod.logger().info("Converting {} player profiles", playerList.size());
+
             final Iterator<UUID> iterator = playerList.iterator();
 
             this.totalElements.set(playerList.size());
