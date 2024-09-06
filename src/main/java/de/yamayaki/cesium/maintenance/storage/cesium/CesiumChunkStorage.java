@@ -7,7 +7,6 @@ import de.yamayaki.cesium.api.database.IDBInstance;
 import de.yamayaki.cesium.common.lmdb.LMDBInstance;
 import de.yamayaki.cesium.common.spec.WorldDatabaseSpecs;
 import de.yamayaki.cesium.maintenance.storage.IChunkStorage;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;
 import org.lmdbjava.LmdbException;
 
@@ -58,32 +57,32 @@ public class CesiumChunkStorage implements IChunkStorage {
     }
 
     @Override
-    public void setChunkData(final ChunkPos chunkPos, final CompoundTag compoundTag) {
-        this.database.getTransaction(WorldDatabaseSpecs.CHUNK_DATA).add(chunkPos, compoundTag);
+    public void setChunkData(final ChunkPos chunkPos, final byte[] bytes) {
+        this.database.getTransaction(WorldDatabaseSpecs.CHUNK_DATA).addBytes(chunkPos, bytes);
     }
 
     @Override
-    public CompoundTag getChunkData(final ChunkPos chunkPos) {
-        return this.database.getDatabase(WorldDatabaseSpecs.CHUNK_DATA).getValue(chunkPos);
+    public byte[] getChunkData(final ChunkPos chunkPos) {
+        return this.database.getDatabase(WorldDatabaseSpecs.CHUNK_DATA).getBytes(chunkPos);
     }
 
     @Override
-    public void setPOIData(final ChunkPos chunkPos, final CompoundTag compoundTag) {
-        this.database.getTransaction(WorldDatabaseSpecs.POI).add(chunkPos, compoundTag);
+    public void setPOIData(final ChunkPos chunkPos, final byte[] bytes) {
+        this.database.getTransaction(WorldDatabaseSpecs.POI).addBytes(chunkPos, bytes);
     }
 
     @Override
-    public CompoundTag getPOIData(final ChunkPos chunkPos) {
-        return this.database.getDatabase(WorldDatabaseSpecs.POI).getValue(chunkPos);
+    public byte[] getPOIData(final ChunkPos chunkPos) {
+        return this.database.getDatabase(WorldDatabaseSpecs.POI).getBytes(chunkPos);
     }
 
     @Override
-    public void setEntityData(final ChunkPos chunkPos, final CompoundTag compoundTag) {
-        this.database.getTransaction(WorldDatabaseSpecs.ENTITY).add(chunkPos, compoundTag);
+    public void setEntityData(final ChunkPos chunkPos, final byte[] bytes) {
+        this.database.getTransaction(WorldDatabaseSpecs.ENTITY).addBytes(chunkPos, bytes);
     }
 
     @Override
-    public CompoundTag getEntityData(final ChunkPos chunkPos) {
-        return this.database.getDatabase(WorldDatabaseSpecs.ENTITY).getValue(chunkPos);
+    public byte[] getEntityData(final ChunkPos chunkPos) {
+        return this.database.getDatabase(WorldDatabaseSpecs.ENTITY).getBytes(chunkPos);
     }
 }

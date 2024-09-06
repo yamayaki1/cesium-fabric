@@ -18,6 +18,7 @@
     "core.players.MixinServerStatsCounter",
     "core.storage.MixinIOWorker",
     "core.storage.MixinSimpleRegionStorage",
+    "core.storage.RegionFileStorageMixin",
     "core.upgrader.MixinWorldUpgrader"
   ],
   "injectors": {

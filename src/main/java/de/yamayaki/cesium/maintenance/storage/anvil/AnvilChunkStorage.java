@@ -2,8 +2,8 @@ package de.yamayaki.cesium.maintenance.storage.anvil;
 
 import com.google.common.collect.ImmutableList;
 import de.yamayaki.cesium.CesiumMod;
+import de.yamayaki.cesium.api.accessor.RawAccess;
 import de.yamayaki.cesium.maintenance.storage.IChunkStorage;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.storage.RegionFileStorage;
 import net.minecraft.world.level.chunk.storage.RegionStorageInfo;
@@ -86,54 +86,54 @@ public class AnvilChunkStorage implements IChunkStorage {
     }
 
     @Override
-    public synchronized void setChunkData(final ChunkPos chunkPos, final CompoundTag compoundTag) {
+    public synchronized void setChunkData(final ChunkPos chunkPos, final byte[] bytes) {
         try {
-            this.chunkData.write(chunkPos, compoundTag);
+            ((RawAccess) (Object) this.chunkData).cesium$putBytes(chunkPos, bytes);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public synchronized CompoundTag getChunkData(final ChunkPos chunkPos) {
+    public synchronized byte[] getChunkData(final ChunkPos chunkPos) {
         try {
-            return this.chunkData.read(chunkPos);
+            return ((RawAccess) (Object) this.chunkData).cesium$getBytes(chunkPos);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public synchronized void setPOIData(final ChunkPos chunkPos, final CompoundTag compoundTag) {
+    public synchronized void setPOIData(final ChunkPos chunkPos, final byte[] bytes) {
         try {
-            this.poiData.write(chunkPos, compoundTag);
+            ((RawAccess) (Object) this.poiData).cesium$putBytes(chunkPos, bytes);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public synchronized CompoundTag getPOIData(final ChunkPos chunkPos) {
+    public synchronized byte[] getPOIData(final ChunkPos chunkPos) {
         try {
-            return this.poiData.read(chunkPos);
+            return ((RawAccess) (Object) this.poiData).cesium$getBytes(chunkPos);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public synchronized void setEntityData(final ChunkPos chunkPos, final CompoundTag compoundTag) {
+    public synchronized void setEntityData(final ChunkPos chunkPos, final byte[] bytes) {
         try {
-            this.entityData.write(chunkPos, compoundTag);
+            ((RawAccess) (Object) this.entityData).cesium$putBytes(chunkPos, bytes);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public synchronized CompoundTag getEntityData(final ChunkPos chunkPos) {
+    public synchronized byte[] getEntityData(final ChunkPos chunkPos) {
         try {
-            return this.entityData.read(chunkPos);
+            return ((RawAccess) (Object) this.entityData).cesium$getBytes(chunkPos);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

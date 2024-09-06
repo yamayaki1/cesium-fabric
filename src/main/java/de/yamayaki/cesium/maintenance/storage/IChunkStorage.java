@@ -1,6 +1,5 @@
 package de.yamayaki.cesium.maintenance.storage;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;
 
 import java.util.List;
@@ -13,21 +12,21 @@ public interface IChunkStorage extends AutoCloseable {
     /**
      * ChunkData
      **/
-    void setChunkData(ChunkPos chunkPos, CompoundTag compoundTag);
+    void setChunkData(ChunkPos chunkPos, byte[] bytes);
 
-    CompoundTag getChunkData(ChunkPos chunkPos);
+    byte[] getChunkData(ChunkPos chunkPos);
 
     /**
      * POIData
      **/
-    void setPOIData(ChunkPos chunkPos, CompoundTag compoundTag);
+    void setPOIData(ChunkPos chunkPos, byte[] bytes);
 
-    CompoundTag getPOIData(ChunkPos chunkPos);
+    byte[] getPOIData(ChunkPos chunkPos);
 
     /**
      * EntityData
      **/
-    void setEntityData(ChunkPos chunkPos, CompoundTag compoundTag);
+    void setEntityData(ChunkPos chunkPos, byte[] bytes);
 
-    CompoundTag getEntityData(ChunkPos chunkPos);
+    byte[] getEntityData(ChunkPos chunkPos);
 }

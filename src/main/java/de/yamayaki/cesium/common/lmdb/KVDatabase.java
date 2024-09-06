@@ -46,6 +46,21 @@ public class KVDatabase<K, V> implements IKVDatabase<K, V> {
 
     @Override
     public V getValue(K key) {
+        byte[] buf = this.getBytes(key);
+
+        if (buf == null) {
+            return null;
+        }
+
+        try {
+            return this.valueSerializer.deserialize(buf);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to deserialize value", e);
+        }
+    }
+
+    @Override
+    public byte[] getBytes(final K key) {
         ReentrantReadWriteLock lock = this.storage.getLock();
         lock.readLock()
                 .lock();
@@ -62,18 +77,10 @@ public class KVDatabase<K, V> implements IKVDatabase<K, V> {
                 return null;
             }
 
-            byte[] decompressed;
-
             try {
-                decompressed = this.compressor.decompress(buf);
+                return this.compressor.decompress(buf);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to decompress value", e);
-            }
-
-            try {
-                return this.valueSerializer.deserialize(decompressed);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to deserialize value", e);
             }
         } finally {
             lock.readLock()

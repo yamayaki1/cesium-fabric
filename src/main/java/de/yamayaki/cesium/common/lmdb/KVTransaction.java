@@ -23,21 +23,30 @@ public class KVTransaction<K, V> implements IKVTransaction<K, V> {
             byte[] data = null;
 
             if (value != null) {
-                byte[] serialized = this.storage.getValueSerializer()
+                data = this.storage.getValueSerializer()
                         .serialize(value);
-
-                data = this.storage.getCompressor()
-                        .compress(serialized);
             }
 
-            synchronized (this.pending) {
-                this.pending.put(key, data);
-            }
-
-            this.storage.setDirty();
+            this.addBytes(key, data);
         } catch (IOException e) {
             throw new RuntimeException("Couldn't serialize value", e);
         }
+    }
+
+    @Override
+    public void addBytes(final K key, final byte[] value) {
+        byte[] data = null;
+
+        if (value != null) {
+            data = this.storage.getCompressor()
+                    .compress(value);
+        }
+
+        synchronized (this.pending) {
+            this.pending.put(key, data);
+        }
+
+        this.storage.setDirty();
     }
 
     void createSnapshot() {
