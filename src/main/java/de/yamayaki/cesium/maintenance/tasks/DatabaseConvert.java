@@ -91,13 +91,14 @@ public class DatabaseConvert extends AbstractTask {
             this.totalElements.set(chunkList.size());
             this.currentElement.set(0);
 
-            final List<CompletableFuture<Void>> copyTasks = new ArrayList<>(1024);
+            final int taskCount = Math.clamp(Runtime.getRuntime().availableProcessors() * 2L, 8, 32);
+            final List<CompletableFuture<Void>> copyTasks = new ArrayList<>(taskCount);
 
             while (this.running.get() && iterator.hasNext()) {
                 final int currentChunk = this.currentElement.incrementAndGet();
                 copyTasks.add(this.copyChunkData(iterator.next(), _old, _new));
 
-                if ((currentChunk % 1024) == 0) {
+                if ((currentChunk % taskCount) == 0) {
                     CompletableFuture.allOf(copyTasks.toArray(CompletableFuture[]::new)).join();
 
                     _new.flush();
