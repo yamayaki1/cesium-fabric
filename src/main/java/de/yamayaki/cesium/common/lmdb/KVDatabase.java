@@ -62,29 +62,30 @@ public class KVDatabase<K, V> implements IKVDatabase<K, V> {
     @Override
     public byte[] getBytes(final K key) {
         ReentrantReadWriteLock lock = this.storage.getLock();
+        byte[] buf;
+
         lock.readLock()
                 .lock();
 
         try {
-            byte[] buf;
             try {
                 buf = this.dbi.get(this.env.txnRead(), this.keySerializer.serialize(key));
             } catch (final IOException e) {
                 throw new RuntimeException("Failed to deserialize key", e);
             }
-
-            if (buf == null) {
-                return null;
-            }
-
-            try {
-                return this.compressor.decompress(buf);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to decompress value", e);
-            }
         } finally {
             lock.readLock()
                     .unlock();
+        }
+
+        if (buf == null) {
+            return null;
+        }
+
+        try {
+            return this.compressor.decompress(buf);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to decompress value", e);
         }
     }
 
@@ -96,37 +97,16 @@ public class KVDatabase<K, V> implements IKVDatabase<K, V> {
             return;
         }
 
-        ReentrantReadWriteLock lock = this.storage.getLock();
-        lock.readLock()
-                .lock();
+        byte[] bytes = this.getBytes(key);
+
+        if (bytes == null) {
+            return;
+        }
 
         try {
-            byte[] buf;
-            try {
-                buf = this.dbi.get(this.env.txnRead(), this.keySerializer.serialize(key));
-            } catch (final IOException e) {
-                throw new RuntimeException("Failed to deserialize key", e);
-            }
-
-            if (buf == null) {
-                return;
-            }
-
-            byte[] decompressed;
-            try {
-                decompressed = this.compressor.decompress(buf);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to decompress value", e);
-            }
-
-            try {
-                ((IScannable<T>) this.valueSerializer).scan(decompressed, scanner);
-            } catch (Exception ex) {
-                throw new RuntimeException("Failed to scan value", ex);
-            }
-        } finally {
-            lock.readLock()
-                    .unlock();
+            ((IScannable<T>) this.valueSerializer).scan(bytes, scanner);
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to scan value", ex);
         }
     }
 
