@@ -109,7 +109,7 @@ public class LMDBInstance implements IDBInstance {
     private void commitTransaction() {
         this.snapshotCreate();
 
-        for (int tries = 0; tries < MAX_COMMIT_TRIES; tries++) {
+        for (int tries = 1; tries < MAX_COMMIT_TRIES + 1; tries++) {
             try (final Txn<?> txn = this.prepareTransaction()) {
                 txn.commit();
 
@@ -125,7 +125,7 @@ public class LMDBInstance implements IDBInstance {
                 CesiumMod.logger().info("Commit of transaction failed; trying again ({}/{}): {}", tries, this.MAX_COMMIT_TRIES, l.getMessage());
             }
 
-            if (tries == (MAX_COMMIT_TRIES - 1)) {
+            if (tries == MAX_COMMIT_TRIES) {
                 throw new RuntimeException("Could not commit transactions!");
             }
         }
