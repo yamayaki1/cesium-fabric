@@ -34,7 +34,7 @@ public class AnvilChunkStorage implements IChunkStorage {
     }
 
     @Override
-    public List<ChunkPos> getAllChunks() {
+    public List<Region> getAllRegions() {
         final File regionsFolder = new File(this.basePath.toFile(), "region");
         final File[] files = regionsFolder.listFiles((filex, string) -> string.endsWith(".mca"));
 
@@ -42,23 +42,28 @@ public class AnvilChunkStorage implements IChunkStorage {
             return ImmutableList.of();
         }
 
-        final List<ChunkPos> list = new ArrayList<>();
+        final List<Region> regionList = new ArrayList<>();
 
-        for (File region : files) {
-            Matcher matcher = REGEX.matcher(region.getName());
+        for (final File regionFile : files) {
+            final Matcher matcher = REGEX.matcher(regionFile.getName());
+
             if (matcher.matches()) {
-                final int regionX = Integer.parseInt(matcher.group(1)) << 5;
-                final int regionZ = Integer.parseInt(matcher.group(2)) << 5;
+                final int regionX = Integer.parseInt(matcher.group(1));
+                final int regionZ = Integer.parseInt(matcher.group(2));
+
+                final Region region = Region.create(regionX, regionZ);
 
                 for (int chunkX = 0; chunkX < 32; ++chunkX) {
-                    for (int chunkY = 0; chunkY < 32; ++chunkY) {
-                        list.add(new ChunkPos(chunkX + regionX, chunkY + regionZ));
+                    for (int chunkZ = 0; chunkZ < 32; ++chunkZ) {
+                        region.addChunk(new ChunkPos(chunkX + (regionX << 5), chunkZ + (regionZ << 5)));
                     }
                 }
+
+                regionList.add(region);
             }
         }
 
-        return list;
+        return regionList;
     }
 
     @Override

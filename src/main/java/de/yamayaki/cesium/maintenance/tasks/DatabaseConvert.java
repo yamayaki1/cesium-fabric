@@ -17,7 +17,6 @@ import net.minecraft.world.level.storage.LevelStorageSource;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -85,42 +84,52 @@ public class DatabaseConvert extends AbstractTask {
                 final IChunkStorage _old = this.cStorage(dimensionPath, true);
                 final IChunkStorage _new = this.cStorage(dimensionPath, false)
         ) {
-            final List<ChunkPos> chunkList = _old.getAllChunks();
-            final Iterator<ChunkPos> iterator = chunkList.iterator();
-
-            this.totalElements.set(chunkList.size());
-            this.currentElement.set(0);
-
-            final int taskCount = Math.clamp(Runtime.getRuntime().availableProcessors() * 2L, 8, 32);
-            final List<CompletableFuture<Void>> copyTasks = new ArrayList<>(taskCount);
-
-            while (this.running.get() && iterator.hasNext()) {
-                final int currentChunk = this.currentElement.incrementAndGet();
-                copyTasks.add(this.copyChunkData(iterator.next(), _old, _new));
-
-                if ((currentChunk % taskCount) == 0) {
-                    CompletableFuture.allOf(copyTasks.toArray(CompletableFuture[]::new)).join();
-
-                    _new.flush();
-                    copyTasks.clear();
-                }
-            }
-
-            CompletableFuture.allOf(copyTasks.toArray(CompletableFuture[]::new)).join();
+            this.copyChunksData(_old, _new);
         } catch (final Throwable t) {
             throw new RuntimeException("Could not copy all level data.", t);
         }
     }
 
+    private void copyChunksData(final IChunkStorage _old, final IChunkStorage _new) {
+        final List<IChunkStorage.Region> regionList = _old.getAllRegions();
+        final Iterator<IChunkStorage.Region> iterator = regionList.iterator();
+
+        this.totalElements.set(regionList.size() * 1024);
+        this.currentElement.set(0);
+
+        while (this.running.get() && iterator.hasNext()) {
+            final ChunkPos[] chunks = iterator.next().chunks();
+            final CompletableFuture<?>[] futures = new CompletableFuture<?>[chunks.length];
+
+            for (int i = 0; i < chunks.length; i++) {
+                futures[i] = this.copyChunkData(chunks[i], _old, _new);
+            }
+
+            CompletableFuture.allOf(futures).join();
+            _new.flush();
+        }
+    }
+
     private CompletableFuture<Void> copyChunkData(final ChunkPos chunkPos, final IChunkStorage _old, final IChunkStorage _new) {
-        return CompletableFuture.runAsync(() -> {
-            _new.setChunkData(chunkPos, _old.getChunkData(chunkPos));
-            _new.setPOIData(chunkPos, _old.getPOIData(chunkPos));
-            _new.setEntityData(chunkPos, _old.getEntityData(chunkPos));
-        }, Util.backgroundExecutor()).exceptionally(throwable -> {
-            LOGGER.error("Could not copy chunk into new storage.", throwable);
-            return null;
-        });
+        final CompletableFuture<Void> future;
+
+        if(chunkPos == null) {
+            future =  CompletableFuture.completedFuture(null);
+            this.currentElement.addAndGet(1);
+        } else {
+            future = CompletableFuture.runAsync(() -> {
+                _new.setChunkData(chunkPos, _old.getChunkData(chunkPos));
+                _new.setPOIData(chunkPos, _old.getPOIData(chunkPos));
+                _new.setEntityData(chunkPos, _old.getEntityData(chunkPos));
+
+                this.currentElement.addAndGet(1);
+            }, Util.backgroundExecutor()).exceptionally(throwable -> {
+                LOGGER.error("Could not copy chunk into new storage.", throwable);
+                return null;
+            });
+        }
+
+        return future;
     }
 
     private @NotNull IChunkStorage cStorage(final Path path, final boolean old) {

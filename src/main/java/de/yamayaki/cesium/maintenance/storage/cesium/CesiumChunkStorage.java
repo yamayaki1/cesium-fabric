@@ -7,6 +7,8 @@ import de.yamayaki.cesium.api.database.IDBInstance;
 import de.yamayaki.cesium.common.lmdb.LMDBInstance;
 import de.yamayaki.cesium.common.spec.WorldDatabaseSpecs;
 import de.yamayaki.cesium.maintenance.storage.IChunkStorage;
+import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import net.minecraft.world.level.ChunkPos;
 import org.lmdbjava.LmdbException;
 
@@ -27,18 +29,36 @@ public class CesiumChunkStorage implements IChunkStorage {
 
 
     @Override
-    public List<ChunkPos> getAllChunks() {
-        final List<ChunkPos> list = new ArrayList<>();
+    public List<Region> getAllRegions() {
+        final Long2ObjectMap<Region> regionMap = new Long2ObjectArrayMap<>();
 
         try (final ICloseableIterator<ChunkPos> crs = this.database.getDatabase(WorldDatabaseSpecs.CHUNK_DATA).getIterator()) {
+            ChunkPos chunkPos;
+            Region region;
+            long regionKey;
+
             while (crs.hasNext()) {
-                list.add(crs.next());
+                chunkPos = crs.next();
+
+                regionKey = regionKey(chunkPos.getRegionX(), chunkPos.getRegionZ());
+                region = regionMap.get(regionKey);
+
+                if(region == null) {
+                    region = Region.create(chunkPos.getRegionX(), chunkPos.getRegionZ());
+                    regionMap.put(regionKey, region);
+                }
+
+                region.addChunk(chunkPos);
             }
         } catch (final Throwable t) {
             throw new RuntimeException("Could not iterate on cursor.", t);
         }
 
-        return list;
+        return regionMap.values().stream().toList();
+    }
+
+    private static long regionKey(final int x, final int z) {
+        return (long)x & 4294967295L | ((long)z & 4294967295L) << 32;
     }
 
     @Override
