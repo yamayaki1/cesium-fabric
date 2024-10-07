@@ -21,8 +21,6 @@ import net.minecraft.world.level.storage.WorldData;
 import org.spongepowered.asm.mixin.Unique;
 
 public class CesiumTasksScreen extends Screen {
-    private final LinearLayout layout = LinearLayout.vertical().spacing(5);
-
     private final LevelStorageSource.LevelStorageAccess levelAccess;
     private final BooleanConsumer callback;
 
@@ -31,26 +29,39 @@ public class CesiumTasksScreen extends Screen {
 
         this.levelAccess = levelAccess;
         this.callback = callback;
+    }
 
-        this.layout.addChild(Button.builder(Component.literal("Anvil → Cesium"), buttonx -> {
-            this.minecraft.setScreen(new CesiumWorkScreen(AbstractTask.Task.TO_CESIUM, this.levelAccess, this.createRegistry(), this.callback));
-        }).width(200).build());
+    public void render(GuiGraphics guiGraphics, int i, int j, float f) {
+        super.render(guiGraphics, i, j, f);
+        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 15, 16777215);
+    }
 
-        this.layout.addChild(Button.builder(Component.literal("Cesium → Anvil"), buttonx -> {
-            this.minecraft.setScreen(new CesiumWorkScreen(AbstractTask.Task.TO_ANVIL, this.levelAccess, this.createRegistry(), this.callback));
-        }).width(200).build());
+    @Override
+    protected void init() {
+        var layout = LinearLayout.vertical().spacing(5);
 
-        this.layout.addChild(Button.builder(Component.literal("Compact Database"), buttonx -> {
-            this.minecraft.setScreen(new CesiumWorkScreen(AbstractTask.Task.COMPACT, this.levelAccess, this.createRegistry(), this.callback));
-        }).width(200).build());
+        layout.addChild(this.taskButton("Anvil → Cesium", AbstractTask.Task.TO_CESIUM));
+        layout.addChild(this.taskButton("Cesium → Anvil", AbstractTask.Task.TO_ANVIL));
+        layout.addChild(this.taskButton("Compact Database", AbstractTask.Task.COMPACT));
 
-        this.layout.addChild(new SpacerElement(200, 20));
+        layout.addChild(new SpacerElement(200, 20));
 
-        this.layout.addChild(Button.builder(CommonComponents.GUI_CANCEL, (buttonx) -> {
-            this.onClose();
-        }).width(200).build());
+        layout.addChild(Button.builder(CommonComponents.GUI_CANCEL, (buttonx) -> this.onClose()).width(200).build());
 
-        this.layout.visitWidgets(this::addRenderableWidget);
+        layout.visitWidgets(this::addRenderableWidget);
+
+        layout.arrangeElements();
+        FrameLayout.centerInRectangle(layout, this.getRectangle());
+    }
+
+    @Unique
+    private Button taskButton(final String text, final AbstractTask.Task task) {
+        return Button.builder(
+                Component.literal(text),
+                action -> this.minecraft.setScreen(
+                        new CesiumWorkScreen(task, this.levelAccess, this.createRegistry(), this.callback)
+                )
+        ).width(200).build();
     }
 
     /*
@@ -78,17 +89,7 @@ public class CesiumTasksScreen extends Screen {
         return null;
     }
 
-    public void render(GuiGraphics guiGraphics, int i, int j, float f) {
-        super.render(guiGraphics, i, j, f);
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 15, 16777215);
-    }
-
     @Override
-    protected void init() {
-        this.layout.arrangeElements();
-        FrameLayout.centerInRectangle(this.layout, this.getRectangle());
-    }
-
     public void onClose() {
         this.callback.accept(false);
     }
