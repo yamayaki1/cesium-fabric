@@ -38,7 +38,13 @@ public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSett
      * @author Yamayaki
      * @see IOWorker#loadAsync(ChunkPos)
      */
-    @Redirect(method = "method_27943", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/RegionFileStorage;read(Lnet/minecraft/world/level/ChunkPos;)Lnet/minecraft/nbt/CompoundTag;"))
+    @Redirect(
+            method = "method_27943",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/level/chunk/storage/RegionFileStorage;read(Lnet/minecraft/world/level/ChunkPos;)Lnet/minecraft/nbt/CompoundTag;"
+            )
+    )
     private CompoundTag cesium$read(RegionFileStorage instance, ChunkPos chunkPos) throws IOException {
         if (this.isCesium) {
             return this.database
@@ -53,7 +59,13 @@ public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSett
      * @author Yamayaki
      * @see IOWorker#scanChunk(ChunkPos, StreamTagVisitor)
      */
-    @Redirect(method = "method_39801", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/RegionFileStorage;scanChunk(Lnet/minecraft/world/level/ChunkPos;Lnet/minecraft/nbt/StreamTagVisitor;)V"))
+    @Redirect(
+            method = "method_39801",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/level/chunk/storage/RegionFileStorage;scanChunk(Lnet/minecraft/world/level/ChunkPos;Lnet/minecraft/nbt/StreamTagVisitor;)V"
+            )
+    )
     private void cesium$scanChunk(RegionFileStorage instance, ChunkPos chunkPos, StreamTagVisitor streamTagVisitor) throws IOException {
         if (this.isCesium) {
             this.database
@@ -68,14 +80,26 @@ public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSett
      * @author Yamayaki
      * @see IOWorker#synchronize(boolean)
      */
-    @Redirect(method = "method_27946", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/RegionFileStorage;flush()V"))
+    @Redirect(
+            method = "method_27946",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/level/chunk/storage/RegionFileStorage;flush()V"
+            )
+    )
     private void cesium$flush(RegionFileStorage instance) throws IOException {
         if (!this.isCesium) {
             instance.flush();
         }
     }
 
-    @Redirect(method = "runStore", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/RegionFileStorage;write(Lnet/minecraft/world/level/ChunkPos;Lnet/minecraft/nbt/CompoundTag;)V"))
+    @Redirect(
+            method = "runStore",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/level/chunk/storage/RegionFileStorage;write(Lnet/minecraft/world/level/ChunkPos;Lnet/minecraft/nbt/CompoundTag;)V"
+            )
+    )
     private void cesium$write(RegionFileStorage instance, ChunkPos chunkPos, CompoundTag compoundTag) throws IOException {
         if (this.isCesium) {
             this.database

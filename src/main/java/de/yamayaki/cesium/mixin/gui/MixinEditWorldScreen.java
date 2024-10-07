@@ -33,7 +33,14 @@ public abstract class MixinEditWorldScreen extends Screen {
         super(component);
     }
 
-    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/layouts/LinearLayout;addChild(Lnet/minecraft/client/gui/layouts/LayoutElement;)Lnet/minecraft/client/gui/layouts/LayoutElement;", ordinal = 9))
+    @Inject(
+            method = "<init>",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/layouts/LinearLayout;addChild(Lnet/minecraft/client/gui/layouts/LayoutElement;)Lnet/minecraft/client/gui/layouts/LayoutElement;",
+                    ordinal = 9
+            )
+    )
     public void reInit(CallbackInfo ci) {
         this.layout.addChild(Button.builder(Component.literal("Cesium Maintenance"), buttonx -> {
             this.minecraft.setScreen(new CesiumTasksScreen(this.levelAccess, this.callback));

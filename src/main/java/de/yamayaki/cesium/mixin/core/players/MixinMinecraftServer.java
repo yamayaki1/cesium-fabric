@@ -14,7 +14,13 @@ public class MixinMinecraftServer {
     @Shadow
     private PlayerList playerList;
 
-    @Inject(method = "stopServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;removeAll()V"))
+    @Inject(
+            method = "stopServer",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/server/players/PlayerList;removeAll()V"
+            )
+    )
     private void postSaveAllPlayerList(CallbackInfo ci) {
         ((DatabaseSource) this.playerList)
                 .cesium$getStorage()

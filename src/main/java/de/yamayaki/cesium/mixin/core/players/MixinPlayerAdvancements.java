@@ -1,6 +1,6 @@
 package de.yamayaki.cesium.mixin.core.players;
 
-import com.google.gson.JsonElement;
+import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import de.yamayaki.cesium.api.accessor.DatabaseSetter;
@@ -17,7 +17,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -40,7 +39,13 @@ public abstract class MixinPlayerAdvancements implements DatabaseSetter {
     @Unique
     private IDBInstance database;
 
-    @Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerAdvancements;load(Lnet/minecraft/server/ServerAdvancementManager;)V"))
+    @Redirect(
+            method = "<init>",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/server/PlayerAdvancements;load(Lnet/minecraft/server/ServerAdvancementManager;)V"
+            )
+    )
     private void killInitialLoad(PlayerAdvancements playerAdvancementTracker, ServerAdvancementManager advancementLoader) {
         // Do not load advancements before storage is set
     }
@@ -55,14 +60,26 @@ public abstract class MixinPlayerAdvancements implements DatabaseSetter {
         }
     }
 
-    @Redirect(method = "load", at = @At(value = "INVOKE", target = "Ljava/nio/file/Files;isRegularFile(Ljava/nio/file/Path;[Ljava/nio/file/LinkOption;)Z"))
+    @Redirect(
+            method = "load",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Ljava/nio/file/Files;isRegularFile(Ljava/nio/file/Path;[Ljava/nio/file/LinkOption;)Z"
+            )
+    )
     private boolean redirectFileExists(Path provider, LinkOption[] ioe) {
         return this.database
                 .getDatabase(PlayerDatabaseSpecs.ADVANCEMENTS)
                 .getValue(this.player.getUUID()) != null;
     }
 
-    @Redirect(method = "load", at = @At(value = "INVOKE", target = "Ljava/nio/file/Files;newBufferedReader(Ljava/nio/file/Path;Ljava/nio/charset/Charset;)Ljava/io/BufferedReader;"))
+    @Redirect(
+            method = "load",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Ljava/nio/file/Files;newBufferedReader(Ljava/nio/file/Path;Ljava/nio/charset/Charset;)Ljava/io/BufferedReader;"
+            )
+    )
     private BufferedReader redirectBufferedReaderInstantiation(Path path, Charset cs) {
         final String advancements = this.database
                 .getDatabase(PlayerDatabaseSpecs.ADVANCEMENTS)
@@ -76,7 +93,13 @@ public abstract class MixinPlayerAdvancements implements DatabaseSetter {
         // Do nothing
     }
 
-    @Redirect(method = "save", at = @At(value = "INVOKE", target = "Ljava/nio/file/Files;newBufferedWriter(Ljava/nio/file/Path;Ljava/nio/charset/Charset;[Ljava/nio/file/OpenOption;)Ljava/io/BufferedWriter;"))
+    @Redirect(
+            method = "save",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Ljava/nio/file/Files;newBufferedWriter(Ljava/nio/file/Path;Ljava/nio/charset/Charset;[Ljava/nio/file/OpenOption;)Ljava/io/BufferedWriter;"
+            )
+    )
     private BufferedWriter replaceFileBufferedWriter(Path path, Charset cs, OpenOption[] options, @Share("stringWriter") LocalRef<StringWriter> localWriter) {
         final StringWriter stringWriter = new StringWriter();
         localWriter.set(stringWriter);
@@ -84,8 +107,16 @@ public abstract class MixinPlayerAdvancements implements DatabaseSetter {
         return new BufferedWriter(stringWriter);
     }
 
-    @Inject(method = "save", at = @At(value = "INVOKE", target = "Lcom/google/gson/Gson;toJson(Lcom/google/gson/JsonElement;Lcom/google/gson/stream/JsonWriter;)V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
-    private void flushAndSaveStringWriterContent(CallbackInfo ci, JsonElement jsonElement, Writer writer, @Share("stringWriter") LocalRef<StringWriter> localWriter) {
+    @Inject(
+            method = "save",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lcom/google/gson/Gson;toJson(Lcom/google/gson/JsonElement;Lcom/google/gson/stream/JsonWriter;)V",
+                    shift = At.Shift.AFTER,
+                    remap = false
+            )
+    )
+    private void flushAndSaveStringWriterContent(CallbackInfo ci, @Local Writer writer, @Share("stringWriter") LocalRef<StringWriter> localWriter) {
         try {
             writer.flush();
         } catch (Exception e) {

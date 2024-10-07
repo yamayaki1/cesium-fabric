@@ -39,7 +39,13 @@ public abstract class MixinServerStatsCounter extends StatsCounter implements Da
     @Unique
     private IDBInstance database;
 
-    @Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Ljava/io/File;isFile()Z"))
+    @Redirect(
+            method = "<init>",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Ljava/io/File;isFile()Z"
+            )
+    )
     public boolean killInitialLoad(File file) {
         return false;
     }
@@ -70,7 +76,14 @@ public abstract class MixinServerStatsCounter extends StatsCounter implements Da
         }
     }
 
-    @Redirect(method = "save", at = @At(value = "INVOKE", target = "Lorg/apache/commons/io/FileUtils;writeStringToFile(Ljava/io/File;Ljava/lang/String;)V"))
+    @Redirect(
+            method = "save",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lorg/apache/commons/io/FileUtils;writeStringToFile(Ljava/io/File;Ljava/lang/String;)V",
+                    remap = false
+            )
+    )
     public void redirectWrite(File file, String data) {
         this.database
                 .getTransaction(PlayerDatabaseSpecs.STATISTICS)

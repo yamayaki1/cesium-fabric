@@ -31,7 +31,7 @@ public class MixinChunkMap {
     private PoiManager poiManager;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void setCesiumDB(ServerLevel serverLevel, LevelStorageSource.LevelStorageAccess levelStorageAccess, DataFixer dataFixer, StructureTemplateManager structureTemplateManager, Executor executor, BlockableEventLoop<?> blockableEventLoop, LightChunkGetter lightChunkGetter, ChunkGenerator chunkGenerator, ChunkProgressListener chunkProgressListener, ChunkStatusUpdateListener chunkStatusUpdateListener, Supplier<?> supplier, int i, boolean bl, CallbackInfo ci) {
+    private void setCesiumDB(ServerLevel serverLevel, LevelStorageSource.LevelStorageAccess levelStorageAccess, DataFixer dataFixer, StructureTemplateManager structureTemplateManager, Executor executor, BlockableEventLoop blockableEventLoop, LightChunkGetter lightChunkGetter, ChunkGenerator chunkGenerator, ChunkProgressListener chunkProgressListener, ChunkStatusUpdateListener chunkStatusUpdateListener, Supplier supplier, int i, boolean bl, CallbackInfo ci) {
         IDBInstance database = ((DatabaseSource) serverLevel).cesium$getStorage();
 
         ((DatabaseSetter) this.poiManager)

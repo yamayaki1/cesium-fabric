@@ -1,5 +1,6 @@
 package de.yamayaki.cesium.mixin.core.players;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import de.yamayaki.cesium.api.accessor.DatabaseSetter;
 import de.yamayaki.cesium.api.accessor.DatabaseSource;
 import de.yamayaki.cesium.api.database.DatabaseSpec;
@@ -23,11 +24,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-import java.io.File;
 import java.nio.file.Path;
-import java.util.UUID;
 
 @Mixin(PlayerList.class)
 public class MixinPlayerList implements DatabaseSource {
@@ -52,13 +50,27 @@ public class MixinPlayerList implements DatabaseSource {
                 .cesium$setStorage(this.database);
     }
 
-    @Inject(method = "getPlayerAdvancements", at = @At(value = "INVOKE", target = "Ljava/util/Map;put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", shift = At.Shift.BEFORE), locals = LocalCapture.CAPTURE_FAILHARD)
-    private void setAdvancementsStorage(ServerPlayer serverPlayer, CallbackInfoReturnable<PlayerAdvancements> cir, UUID uUID, PlayerAdvancements playerAdvancements, Path path) {
+    @Inject(
+            method = "getPlayerAdvancements",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Ljava/util/Map;put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+                    shift = At.Shift.BEFORE
+            )
+    )
+    private void setAdvancementsStorage(ServerPlayer serverPlayer, CallbackInfoReturnable<PlayerAdvancements> cir, @Local PlayerAdvancements playerAdvancements) {
         ((DatabaseSetter) playerAdvancements).cesium$setStorage(this.database);
     }
 
-    @Inject(method = "getPlayerStats", at = @At(value = "INVOKE", target = "Ljava/util/Map;put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", shift = At.Shift.BEFORE), locals = LocalCapture.CAPTURE_FAILHARD)
-    private void setStatsStorage(Player player, CallbackInfoReturnable<ServerStatsCounter> cir, UUID uUID, ServerStatsCounter serverStatsCounter, File file, File file2) {
+    @Inject(
+            method = "getPlayerStats",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Ljava/util/Map;put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+                    shift = At.Shift.BEFORE
+            )
+    )
+    private void setStatsStorage(Player player, CallbackInfoReturnable<ServerStatsCounter> cir, @Local ServerStatsCounter serverStatsCounter) {
         ((DatabaseSetter) serverStatsCounter).cesium$setStorage(this.database);
     }
 

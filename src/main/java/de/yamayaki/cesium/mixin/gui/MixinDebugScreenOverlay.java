@@ -1,5 +1,6 @@
 package de.yamayaki.cesium.mixin.gui;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import de.yamayaki.cesium.CesiumMod;
 import de.yamayaki.cesium.api.accessor.DatabaseSource;
 import de.yamayaki.cesium.api.database.IDBInstance;
@@ -14,14 +15,13 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.util.List;
 
 @Mixin(DebugScreenOverlay.class)
 public class MixinDebugScreenOverlay {
-    @Inject(method = "getSystemInformation", at = @At("RETURN"), locals = LocalCapture.CAPTURE_FAILEXCEPTION)
-    private void cesium$addDebugInfo(CallbackInfoReturnable<List<String>> cir, long l, long m, long n, long o, List<String> list) {
+    @Inject(method = "getSystemInformation", at = @At("RETURN"))
+    private void cesium$addDebugInfo(CallbackInfoReturnable<List<String>> cir, @Local List<String> list) {
         if (!CesiumMod.config().showDebugInfo()) {
             return;
         }

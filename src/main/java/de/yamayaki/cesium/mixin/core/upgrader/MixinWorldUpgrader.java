@@ -1,5 +1,6 @@
 package de.yamayaki.cesium.mixin.core.upgrader;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import de.yamayaki.cesium.api.accessor.DatabaseActions;
 import de.yamayaki.cesium.api.accessor.DatabaseSetter;
 import de.yamayaki.cesium.api.accessor.SpecificationSetter;
@@ -21,12 +22,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -44,7 +43,13 @@ public abstract class MixinWorldUpgrader {
     @Unique
     private double chunkCount = 0;
 
-    @Redirect(method = "upgrade", at = @At(value = "INVOKE", target = "Ljava/lang/AutoCloseable;close()V"))
+    @Redirect(
+            method = "upgrade",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Ljava/lang/AutoCloseable;close()V"
+            )
+    )
     public void cesiumClose(AutoCloseable instance) throws Exception {
         if (instance instanceof DatabaseActions databaseActions) {
             databaseActions.cesium$close();
@@ -53,7 +58,13 @@ public abstract class MixinWorldUpgrader {
         instance.close();
     }
 
-    @Redirect(method = "upgrade", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/worldupdate/WorldUpgrader$AbstractUpgrader;processOnePosition(Lnet/minecraft/resources/ResourceKey;Ljava/lang/AutoCloseable;Lnet/minecraft/world/level/ChunkPos;)Z"))
+    @Redirect(
+            method = "upgrade",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/util/worldupdate/WorldUpgrader$AbstractUpgrader;processOnePosition(Lnet/minecraft/resources/ResourceKey;Ljava/lang/AutoCloseable;Lnet/minecraft/world/level/ChunkPos;)Z"
+            )
+    )
     public boolean cesiumFlush(WorldUpgrader.AbstractUpgrader<?> instance, ResourceKey<Level> resourceKey, AutoCloseable autoCloseable, ChunkPos chunkPos) {
         if (chunkCount % 1024 == 0 && autoCloseable instanceof DatabaseActions databaseActions) {
             databaseActions.cesium$flush();
@@ -65,8 +76,15 @@ public abstract class MixinWorldUpgrader {
     }
 
 
-    @Inject(method = "getDimensionsToUpgrade", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/worldupdate/WorldUpgrader$AbstractUpgrader;getFilesToProcess(Lnet/minecraft/world/level/chunk/storage/RegionStorageInfo;Ljava/nio/file/Path;)Ljava/util/ListIterator;", shift = At.Shift.BY), locals = LocalCapture.CAPTURE_FAILEXCEPTION)
-    public <T extends AutoCloseable> void cesiumCreate(CallbackInfoReturnable<List<WorldUpgrader.DimensionToUpgrade<T>>> cir, List list, Iterator var2, ResourceKey resourceKey, RegionStorageInfo regionStorageInfo, Path path, AutoCloseable autoCloseable) {
+    @Inject(
+            method = "getDimensionsToUpgrade",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/util/worldupdate/WorldUpgrader$AbstractUpgrader;getFilesToProcess(Lnet/minecraft/world/level/chunk/storage/RegionStorageInfo;Ljava/nio/file/Path;)Ljava/util/ListIterator;",
+                    shift = At.Shift.BY
+            )
+    )
+    public <T extends AutoCloseable> void cesiumCreate(CallbackInfoReturnable<List<WorldUpgrader.DimensionToUpgrade<T>>> cir, @Local Path path, @Local RegionStorageInfo regionStorageInfo, @Local AutoCloseable autoCloseable) {
         IDBInstance dbInstance = new LMDBInstance(path.getParent(), "chunks", new DatabaseSpec[]{
                 WorldDatabaseSpecs.CHUNK_DATA,
                 WorldDatabaseSpecs.POI,

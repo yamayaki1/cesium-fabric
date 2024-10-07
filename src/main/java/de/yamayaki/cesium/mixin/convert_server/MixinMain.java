@@ -21,16 +21,32 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MixinMain {
     @Unique
     private static OptionSpec<Void> cesium$convertOptionAnvil;
+
     @Unique
     private static OptionSpec<Void> cesium$convertOptionCesium;
 
-    @Inject(method = "main", at = @At(value = "INVOKE_ASSIGN", target = "Ljoptsimple/OptionParser;accepts(Ljava/lang/String;)Ljoptsimple/OptionSpecBuilder;", ordinal = 0), remap = false)
+    @Inject(
+            method = "main",
+            at = @At(
+                    value = "INVOKE_ASSIGN",
+                    target = "Ljoptsimple/OptionParser;accepts(Ljava/lang/String;)Ljoptsimple/OptionSpecBuilder;",
+                    ordinal = 0
+            ),
+            remap = false
+    )
     private static void addConvertOption(String[] strings, CallbackInfo ci, @Local(ordinal = 0) OptionParser optionParser) {
         cesium$convertOptionAnvil = optionParser.accepts("cesiumConvertToAnvil");
         cesium$convertOptionCesium = optionParser.accepts("cesiumConvertToCesium");
     }
 
-    @Inject(method = "main", at = @At(value = "INVOKE_ASSIGN", target = "Lnet/minecraft/core/LayeredRegistryAccess;compositeAccess()Lnet/minecraft/core/RegistryAccess$Frozen;", shift = At.Shift.AFTER))
+    @Inject(
+            method = "main",
+            at = @At(
+                    value = "INVOKE_ASSIGN",
+                    target = "Lnet/minecraft/core/LayeredRegistryAccess;compositeAccess()Lnet/minecraft/core/RegistryAccess$Frozen;",
+                    shift = At.Shift.AFTER
+            )
+    )
     private static void doConvert(String[] strings, CallbackInfo ci, @Local OptionSet optionSet, @Local LevelStorageSource.LevelStorageAccess levelAccess, @Local RegistryAccess.Frozen registryAccess) {
         final boolean convertAnvil;
 
