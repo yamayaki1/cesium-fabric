@@ -91,7 +91,7 @@ public class DatabaseConvert extends AbstractTask {
             this.totalElements.set(chunkList.size());
             this.currentElement.set(0);
 
-            final int taskCount = Math.clamp(Runtime.getRuntime().availableProcessors() * 2L, 8, 32);
+            final int taskCount = Math.min(Math.max(Runtime.getRuntime().availableProcessors() * 2, 8), 32);
             final List<CompletableFuture<Void>> copyTasks = new ArrayList<>(taskCount);
 
             while (this.running.get() && iterator.hasNext()) {
