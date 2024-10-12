@@ -7,52 +7,47 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.jetbrains.annotations.NotNull;
 
 public class ZSTDContext {
-    private final ThreadLocal<ZstdCompressCtx> compressCtx = ThreadLocal.withInitial(this::compressCtx);
-    private final ThreadLocal<Long2ObjectMap<ZstdDecompressCtx>> decompressCtx = ThreadLocal.withInitial(this::decompressCtx);
+    private final ZstdCompressCtx compressCtx;
+    private final Long2ObjectMap<ZstdDecompressCtx> decompressCtx;
 
-    private final boolean usesDictionary;
-    private final int compressionLevel;
-    private final ZSTDDictionary dictionary;
-
-    public ZSTDContext(final boolean usesDictionary, final int compressionLevel, final ZSTDDictionary dictionary) {
-        this.usesDictionary = usesDictionary;
-        this.compressionLevel = compressionLevel;
-        this.dictionary = dictionary;
+    public ZSTDContext(final boolean usesDictionary, final int compressionLevel, final ZSTDDictionary dictionaries) {
+        this.compressCtx = this.createCompressCtx(usesDictionary, compressionLevel, dictionaries);
+        this.decompressCtx = this.createDecompressCtx(dictionaries);
     }
 
-    private ZstdCompressCtx compressCtx() {
-        final ZstdCompressCtx ctx = new ZstdCompressCtx();
+    private ZstdCompressCtx createCompressCtx(final boolean usesDictionary, final int compressionLevel, final ZSTDDictionary dictionaries) {
+        var ctx = new ZstdCompressCtx();
+
         ctx.setLevel(compressionLevel);
 
         if (usesDictionary) {
-            ctx.loadDict(dictionary.compressDictionary());
+            ctx.loadDict(dictionaries.compressDictionary());
         }
 
         return ctx;
     }
 
-    private Long2ObjectMap<ZstdDecompressCtx> decompressCtx() {
-        final Long2ObjectMap<ZstdDecompressCtx> map = new Long2ObjectArrayMap<>();
+    private Long2ObjectMap<ZstdDecompressCtx> createDecompressCtx(final ZSTDDictionary dictionaries) {
+        var ctxMap = new Long2ObjectArrayMap<ZstdDecompressCtx>();
 
-        for (final long dictId : this.dictionary.dictionaries()) {
-            final ZstdDecompressCtx ctx = new ZstdDecompressCtx();
-            ctx.loadDict(this.dictionary.decompressDictionary(dictId));
+        for (long dictId : dictionaries.dictionaries()) {
+            var dict = dictionaries.decompressDictionary(dictId);
+            var ctx = new ZstdDecompressCtx().loadDict(dict);
 
-            map.put(dictId, ctx);
+            ctxMap.put(dictId, ctx);
         }
 
-        map.put(0, new ZstdDecompressCtx());
+        ctxMap.put(0, new ZstdDecompressCtx());
 
-        return map;
+        return ctxMap;
     }
 
-    public ZstdCompressCtx compress() {
-        return this.compressCtx.get();
+    public @NotNull ZstdCompressCtx compress() {
+        return this.compressCtx;
     }
 
     public @NotNull ZstdDecompressCtx decompress(final long dictId) {
-        final Long2ObjectMap<ZstdDecompressCtx> map = this.decompressCtx.get();
-        final ZstdDecompressCtx ctx = map.get(dictId);
+        var ctx = this.decompressCtx.get(dictId);
 
         if (ctx == null) {
             throw new RuntimeException("Could not find context for dictionary with id " + dictId);

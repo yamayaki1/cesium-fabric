@@ -71,7 +71,7 @@ public class ZSTDDictionary implements AutoCloseable {
     }
 
     public ZstdDictDecompress decompressDictionary(final long id) {
-        final ZstdDictDecompress dictionary = this.decompressMap.get(id);
+        var dictionary = this.decompressMap.get(id);
 
         if (dictionary == null) {
             throw new RuntimeException("Could not find dictionary with id " + id);
