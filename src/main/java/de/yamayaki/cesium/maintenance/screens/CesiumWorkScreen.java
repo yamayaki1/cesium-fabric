@@ -54,7 +54,7 @@ public class CesiumWorkScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int i, int j, float f) {
-        super.render(guiGraphics, i, j, f);
+        this.renderDirtBackground(guiGraphics);
 
         final int textColor = 16777215;
         final int textOffset = 14;
@@ -82,5 +82,7 @@ public class CesiumWorkScreen extends Screen {
 
         guiGraphics.fill(startX - 1, progressOffset - 1, endX + 1, progressOffset + textOffset + 1, -16777216);
         guiGraphics.fill(startX, progressOffset, startX + barEnd, progressOffset + textOffset, -13408734);
+
+        super.render(guiGraphics, i, j, f);
     }
 }

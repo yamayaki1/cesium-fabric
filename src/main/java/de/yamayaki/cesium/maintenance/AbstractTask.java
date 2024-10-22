@@ -33,7 +33,7 @@ public abstract class AbstractTask {
         this.levelAccess = levelAccess;
 
         this.levels = registryAccess
-                .lookupOrThrow(Registries.LEVEL_STEM)
+                .registryOrThrow(Registries.LEVEL_STEM)
                 .registryKeySet()
                 .stream().map(Registries::levelStemToLevel)
                 .toList();

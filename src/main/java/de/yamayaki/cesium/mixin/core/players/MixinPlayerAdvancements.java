@@ -111,7 +111,7 @@ public abstract class MixinPlayerAdvancements implements DatabaseSetter {
             method = "save",
             at = @At(
                     value = "INVOKE",
-                    target = "Lcom/google/gson/Gson;toJson(Lcom/google/gson/JsonElement;Lcom/google/gson/stream/JsonWriter;)V",
+                    target = "Lcom/google/gson/Gson;toJson(Lcom/google/gson/JsonElement;Ljava/lang/Appendable;)V",
                     shift = At.Shift.AFTER,
                     remap = false
             )
