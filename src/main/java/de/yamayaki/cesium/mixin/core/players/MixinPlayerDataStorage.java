@@ -39,7 +39,7 @@ public class MixinPlayerDataStorage implements DatabaseSetter {
     }
 
     @Redirect(
-            method = "load(Lnet/minecraft/world/entity/player/Player;Ljava/lang/String;)Ljava/util/Optional;",
+            method = "load(Lnet/minecraft/world/entity/player/Player;)Lnet/minecraft/nbt/CompoundTag;",
             at = @At(
                     value = "INVOKE",
                     target = "Ljava/io/File;exists()Z"
@@ -50,7 +50,7 @@ public class MixinPlayerDataStorage implements DatabaseSetter {
     }
 
     @Redirect(
-            method = "load(Lnet/minecraft/world/entity/player/Player;Ljava/lang/String;)Ljava/util/Optional;",
+            method = "load",
             at = @At(
                     value = "INVOKE",
                     target = "Ljava/io/File;isFile()Z"
@@ -61,7 +61,7 @@ public class MixinPlayerDataStorage implements DatabaseSetter {
     }
 
     @Redirect(
-            method = "load(Lnet/minecraft/world/entity/player/Player;Ljava/lang/String;)Ljava/util/Optional;",
+            method = "load",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/nbt/NbtIo;readCompressed(Ljava/nio/file/Path;Lnet/minecraft/nbt/NbtAccounter;)Lnet/minecraft/nbt/CompoundTag;"
@@ -80,7 +80,7 @@ public class MixinPlayerDataStorage implements DatabaseSetter {
                     target = "Ljava/nio/file/Files;createTempFile(Ljava/nio/file/Path;Ljava/lang/String;Ljava/lang/String;[Ljava/nio/file/attribute/FileAttribute;)Ljava/nio/file/Path;"
             )
     )
-    public Path disableFileCreation(Path path, String a, String b, FileAttribute[] fileAttributes) {
+    public Path disableFileCreation(Path dir, String prefix, String suffix, FileAttribute<?>[] attrs) {
         return null;
     }
 

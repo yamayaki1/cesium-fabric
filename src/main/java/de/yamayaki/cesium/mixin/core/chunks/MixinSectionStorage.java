@@ -4,8 +4,8 @@ import de.yamayaki.cesium.api.accessor.DatabaseSetter;
 import de.yamayaki.cesium.api.accessor.SpecificationSetter;
 import de.yamayaki.cesium.api.database.IDBInstance;
 import de.yamayaki.cesium.common.spec.WorldDatabaseSpecs;
+import net.minecraft.world.level.chunk.storage.IOWorker;
 import net.minecraft.world.level.chunk.storage.SectionStorage;
-import net.minecraft.world.level.chunk.storage.SimpleRegionStorage;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
@@ -16,11 +16,11 @@ public class MixinSectionStorage<R> implements DatabaseSetter {
     @Mutable
     @Shadow
     @Final
-    private SimpleRegionStorage simpleRegionStorage;
+    private IOWorker worker;
 
     @Override
     public void cesium$setStorage(IDBInstance dbInstance) {
-        ((DatabaseSetter) this.simpleRegionStorage).cesium$setStorage(dbInstance);
-        ((SpecificationSetter) this.simpleRegionStorage).cesium$setSpec(WorldDatabaseSpecs.POI);
+        ((DatabaseSetter) this.worker).cesium$setStorage(dbInstance);
+        ((SpecificationSetter) this.worker).cesium$setSpec(WorldDatabaseSpecs.POI);
     }
 }

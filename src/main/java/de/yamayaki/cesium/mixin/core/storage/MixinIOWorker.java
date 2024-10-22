@@ -1,6 +1,5 @@
 package de.yamayaki.cesium.mixin.core.storage;
 
-import de.yamayaki.cesium.api.accessor.DatabaseActions;
 import de.yamayaki.cesium.api.accessor.DatabaseSetter;
 import de.yamayaki.cesium.api.accessor.SpecificationSetter;
 import de.yamayaki.cesium.api.database.DatabaseSpec;
@@ -20,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import java.io.IOException;
 
 @Mixin(IOWorker.class)
-public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSetter, DatabaseActions {
+public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSetter {
     @Shadow
     @Final
     private RegionFileStorage storage;
@@ -115,14 +114,6 @@ public abstract class MixinIOWorker implements DatabaseSetter, SpecificationSett
         if (!this.isCesium) {
             instance.close();
         }
-    }
-
-    public void cesium$flush() {
-        this.database.flushChanges();
-    }
-
-    public void cesium$close() {
-        this.database.close();
     }
 
     @Override
