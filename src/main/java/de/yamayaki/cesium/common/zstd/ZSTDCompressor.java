@@ -5,7 +5,9 @@ import com.github.luben.zstd.ZstdCompressCtx;
 import com.github.luben.zstd.ZstdDecompressCtx;
 import de.yamayaki.cesium.CesiumMod;
 import de.yamayaki.cesium.api.io.ICompressor;
+import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 public class ZSTDCompressor implements ICompressor {
@@ -19,16 +21,16 @@ public class ZSTDCompressor implements ICompressor {
         return new ZSTDContext(usesDictionary, compressionLevel, dictionary);
     }
 
-    private static long checkError(long rc) {
+    private static long checkError(long rc) throws IOException {
         if (Zstd.isError(rc)) {
-            throw new IllegalStateException(Zstd.getErrorName(rc));
+            throw new IOException(Zstd.getErrorName(rc));
         }
 
         return rc;
     }
 
     @Override
-    public byte[] compress(final byte[] input) {
+    public byte @NotNull [] compress(final byte @NotNull [] input) throws IOException {
         final byte[] dst = new byte[(int) Zstd.compressBound(input.length)];
         final ZstdCompressCtx ctx = this.ctx.get().compress();
 
@@ -38,7 +40,7 @@ public class ZSTDCompressor implements ICompressor {
     }
 
     @Override
-    public byte[] decompress(byte[] input) {
+    public byte @NotNull [] decompress(byte @NotNull [] input) throws IOException {
         byte[] dst = new byte[(int) checkError(Zstd.getFrameContentSize(input))];
         final long dictId = Zstd.getDictIdFromFrame(input);
 

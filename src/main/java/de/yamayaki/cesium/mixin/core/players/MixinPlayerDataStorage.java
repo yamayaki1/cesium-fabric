@@ -93,8 +93,8 @@ public class MixinPlayerDataStorage implements DatabaseSetter {
     )
     public void redirectWrite(CompoundTag compoundTag, Path path, @Local(argsOnly = true) Player player) {
         this.database
-                .getTransaction(PlayerDatabaseSpecs.PLAYER_DATA)
-                .add(player.getUUID(), compoundTag);
+                .getDatabase(PlayerDatabaseSpecs.PLAYER_DATA)
+                .addValue(player.getUUID(), compoundTag);
     }
 
     @Redirect(

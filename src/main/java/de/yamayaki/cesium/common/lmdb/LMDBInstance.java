@@ -4,7 +4,6 @@ import de.yamayaki.cesium.CesiumConfig;
 import de.yamayaki.cesium.api.database.DatabaseSpec;
 import de.yamayaki.cesium.api.database.IDBInstance;
 import de.yamayaki.cesium.api.database.IKVDatabase;
-import de.yamayaki.cesium.api.database.IKVTransaction;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.lmdbjava.ByteArrayProxy;
@@ -19,14 +18,11 @@ import org.slf4j.Logger;
 
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class LMDBInstance implements IDBInstance {
     private final Reference2ObjectMap<DatabaseSpec<?, ?>, KVDatabase<?, ?>> databases = new Reference2ObjectOpenHashMap<>();
-    private final Reference2ObjectMap<DatabaseSpec<?, ?>, KVTransaction<?, ?>> transactions = new Reference2ObjectOpenHashMap<>();
-
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     protected final Logger logger;
@@ -37,7 +33,7 @@ public class LMDBInstance implements IDBInstance {
     protected final int MAX_COMMIT_TRIES = 3;
     protected final int resizeStep;
 
-    protected volatile boolean isDirty = false;
+    protected volatile boolean dirty = false;
 
     public LMDBInstance(final Path databasePath, final DatabaseSpec<?, ?>[] databases, final Logger logger, final CesiumConfig config) {
         this.logger = logger;
@@ -55,10 +51,7 @@ public class LMDBInstance implements IDBInstance {
         }
 
         for (DatabaseSpec<?, ?> spec : databases) {
-            KVDatabase<?, ?> database = new KVDatabase<>(this, spec, !config.isUncompressed());
-
-            this.databases.put(spec, database);
-            this.transactions.put(spec, new KVTransaction<>(database));
+            this.databases.put(spec, new KVDatabase<>(this, spec, !config.isUncompressed()));
         }
     }
 
@@ -75,29 +68,24 @@ public class LMDBInstance implements IDBInstance {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <K, V> IKVTransaction<K, V> getTransaction(DatabaseSpec<K, V> spec) {
-        KVTransaction<?, ?> transaction = this.transactions.get(spec);
-
-        if (transaction == null) {
-            throw new NullPointerException("No transaction is registered for spec " + spec);
-        }
-
-        return (IKVTransaction<K, V>) transaction;
-    }
-
-    @Override
     public void flushChanges() {
-        if (!this.isDirty) {
-            return;
-        }
+        if (!this.dirty) return;
 
         this.lock.writeLock()
                 .lock();
 
         try {
-            this.commitTransaction();
-            this.isDirty = false;
+            this.databases.values()
+                    .forEach(KVDatabase::createSnapshot);
+
+            try {
+                this.commitTransaction();
+            } finally {
+                this.dirty = false;
+
+                this.databases.values()
+                        .forEach(KVDatabase::clearSnapshot);
+            }
         } finally {
             this.lock.writeLock()
                     .unlock();
@@ -105,8 +93,6 @@ public class LMDBInstance implements IDBInstance {
     }
 
     private void commitTransaction() {
-        this.snapshotCreate();
-
         for (int tries = 1; tries < MAX_COMMIT_TRIES + 1; tries++) {
             try (final Txn<?> txn = this.prepareTransaction()) {
                 txn.commit();
@@ -127,39 +113,21 @@ public class LMDBInstance implements IDBInstance {
                 throw new RuntimeException("Could not commit transactions!");
             }
         }
-
-        this.snapshotClear();
     }
 
     private Txn<?> prepareTransaction() throws LmdbException {
-        final Iterator<KVTransaction<?, ?>> it = this.transactions.values()
-                .iterator();
-
         final Txn<byte[]> txn = this.env.txnWrite();
 
         try {
-            while (it.hasNext()) {
-                KVTransaction<?, ?> transaction = it.next();
-                transaction.addChanges(txn);
+            for (final KVDatabase<?, ?> dbi : this.databases.values()) {
+                dbi.addChanges(txn);
             }
-        } catch (LmdbException l) {
+        } catch (final LmdbException l) {
             txn.abort();
             throw l;
         }
 
         return txn;
-    }
-
-    private void snapshotCreate() {
-        for (final KVTransaction<?, ?> txn : this.transactions.values()) {
-            txn.createSnapshot();
-        }
-    }
-
-    private void snapshotClear() {
-        for (final KVTransaction<?, ?> txn : this.transactions.values()) {
-            txn.clearSnapshot();
-        }
     }
 
     private void growMap() {

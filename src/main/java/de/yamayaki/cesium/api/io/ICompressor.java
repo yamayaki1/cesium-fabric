@@ -1,7 +1,11 @@
 package de.yamayaki.cesium.api.io;
 
-public interface ICompressor {
-    byte[] compress(final byte[] input);
+import org.jetbrains.annotations.NotNull;
 
-    byte[] decompress(final byte[] input);
+import java.io.IOException;
+
+public interface ICompressor {
+    byte @NotNull [] compress(final byte @NotNull [] input) throws IOException;
+
+    byte @NotNull [] decompress(final byte @NotNull [] input) throws IOException;
 }

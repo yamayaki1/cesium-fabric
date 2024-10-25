@@ -7,6 +7,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.level.Level;
+import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -24,7 +25,8 @@ import java.util.function.BooleanSupplier;
 @Mixin(MinecraftServer.class)
 public abstract class MixinMinecraftServer {
     @Shadow
-    private PlayerList playerList;
+    @Final
+    private static Logger LOGGER;
 
     @Shadow
     @Final
@@ -33,14 +35,26 @@ public abstract class MixinMinecraftServer {
     @Shadow
     public abstract PlayerList getPlayerList();
 
+    @Shadow
+    private PlayerList playerList;
+
+    @Shadow public abstract void stopServer();
+
     @Unique
     private final ExecutorService saveExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "Cesium-Async-Save"));
 
     @Unique
     private CompletableFuture<Void> saveFuture = null;
 
+    @Unique
+    private volatile boolean didError = false;
+
     @Inject(method = "tickServer", at = @At("RETURN"))
     public void cesium$saveData(BooleanSupplier booleanSupplier, CallbackInfo ci) {
+        if(this.didError) {
+            this.stopServer();
+        }
+
         if (this.saveFuture != null && !this.saveFuture.isDone()) {
             return;
         }
@@ -54,7 +68,12 @@ public abstract class MixinMinecraftServer {
             for (final ServerLevel level : this.levels.values()) {
                 ((DatabaseSource) level).cesium$getStorage().flushChanges();
             }
-        }, this.saveExecutor);
+        }, this.saveExecutor).exceptionally(throwable -> {
+            LOGGER.error("Failed to sync all data!", throwable);
+            this.didError = true;
+
+            return null;
+        });
     }
 
     @Unique
@@ -70,10 +89,10 @@ public abstract class MixinMinecraftServer {
 
     @Inject(method = "stopServer", at = @At("TAIL"))
     public void cesium$stopThread(CallbackInfo ci) {
-        if (this.saveFuture != null) {
+        if (this.saveFuture != null && !this.didError) {
             this.saveFuture.join();
         }
 
-        this.saveExecutor.shutdown();
+        this.saveExecutor.shutdownNow();
     }
 }

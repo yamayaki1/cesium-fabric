@@ -1,20 +1,16 @@
 package de.yamayaki.cesium.api.database;
 
-import de.yamayaki.cesium.api.io.ICompressor;
-import de.yamayaki.cesium.api.io.ISerializer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface IKVDatabase<K, V> {
-    V getValue(final K key);
+    void addValue(final @NotNull K key, final @Nullable V value);
+    void addSerialized(final @NotNull K key, final byte @Nullable [] value);
 
-    byte[] getBytes(final K key);
+    <S> void scan(final @NotNull K key, final @NotNull S scanner);
 
-    <S> void scan(final K key, final S scanner);
-
-    ISerializer<K> getKeySerializer();
-
-    ISerializer<V> getValueSerializer();
-
-    ICompressor getCompressor();
+    @Nullable V getValue(final @NotNull K key);
+    byte @Nullable [] getSerialized(final @NotNull K key);
 
     ICloseableIterator<K> getIterator();
 }

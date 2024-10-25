@@ -8,13 +8,14 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.StreamTagVisitor;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.DataInput;
 import java.io.IOException;
 
 public class CompoundTagSerializer implements ISerializer<CompoundTag>, IScannable<StreamTagVisitor> {
     @Override
-    public byte[] serialize(final CompoundTag input) throws IOException {
+    public byte @NotNull [] serialize(final @NotNull CompoundTag input) throws IOException {
         final ByteArrayDataOutput output = ByteStreams.newDataOutput(2048);
 
         NbtIo.write(input, output);
@@ -23,13 +24,13 @@ public class CompoundTagSerializer implements ISerializer<CompoundTag>, IScannab
     }
 
     @Override
-    public CompoundTag deserialize(final byte[] input) throws IOException {
+    public @NotNull CompoundTag deserialize(final byte @NotNull [] input) throws IOException {
         final DataInput dataInput = ByteStreams.newDataInput(input);
         return NbtIo.read(dataInput);
     }
 
     @Override
-    public void scan(final byte[] input, final StreamTagVisitor scanner) throws IOException {
+    public void scan(final byte @NotNull [] input, final StreamTagVisitor scanner) throws IOException {
         final DataInput dataInput = ByteStreams.newDataInput(input);
         NbtIo.parse(dataInput, scanner, NbtAccounter.unlimitedHeap());
     }

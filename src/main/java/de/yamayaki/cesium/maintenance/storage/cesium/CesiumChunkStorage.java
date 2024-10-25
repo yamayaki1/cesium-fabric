@@ -54,31 +54,31 @@ public class CesiumChunkStorage implements IChunkStorage {
 
     @Override
     public void setChunkData(final ChunkPos chunkPos, final byte[] bytes) {
-        this.database.getTransaction(WorldDatabaseSpecs.CHUNK_DATA).addBytes(chunkPos, bytes);
+        this.database.getDatabase(WorldDatabaseSpecs.CHUNK_DATA).addSerialized(chunkPos, bytes);
     }
 
     @Override
     public byte[] getChunkData(final ChunkPos chunkPos) {
-        return this.database.getDatabase(WorldDatabaseSpecs.CHUNK_DATA).getBytes(chunkPos);
+        return this.database.getDatabase(WorldDatabaseSpecs.CHUNK_DATA).getSerialized(chunkPos);
     }
 
     @Override
     public void setPOIData(final ChunkPos chunkPos, final byte[] bytes) {
-        this.database.getTransaction(WorldDatabaseSpecs.POI).addBytes(chunkPos, bytes);
+        this.database.getDatabase(WorldDatabaseSpecs.POI).addSerialized(chunkPos, bytes);
     }
 
     @Override
     public byte[] getPOIData(final ChunkPos chunkPos) {
-        return this.database.getDatabase(WorldDatabaseSpecs.POI).getBytes(chunkPos);
+        return this.database.getDatabase(WorldDatabaseSpecs.POI).getSerialized(chunkPos);
     }
 
     @Override
     public void setEntityData(final ChunkPos chunkPos, final byte[] bytes) {
-        this.database.getTransaction(WorldDatabaseSpecs.ENTITY).addBytes(chunkPos, bytes);
+        this.database.getDatabase(WorldDatabaseSpecs.ENTITY).addSerialized(chunkPos, bytes);
     }
 
     @Override
     public byte[] getEntityData(final ChunkPos chunkPos) {
-        return this.database.getDatabase(WorldDatabaseSpecs.ENTITY).getBytes(chunkPos);
+        return this.database.getDatabase(WorldDatabaseSpecs.ENTITY).getSerialized(chunkPos);
     }
 }
