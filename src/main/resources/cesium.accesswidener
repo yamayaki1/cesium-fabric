@@ -13,3 +13,7 @@ accessible class net/minecraft/util/worldupdate/WorldUpgrader$DimensionToUpgrade
 accessible field net/minecraft/util/worldupdate/WorldUpgrader$DimensionToUpgrade storage Ljava/lang/Object;
 accessible class net/minecraft/util/worldupdate/WorldUpgrader$FileToUpgrade
 accessible method net/minecraft/util/worldupdate/WorldUpgrader$FileToUpgrade <init> (Lnet/minecraft/world/level/chunk/storage/RegionFile;Ljava/util/List;)V
+
+accessible field net/minecraft/util/worldupdate/WorldUpgrader levelStorage Lnet/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess;
+accessible field net/minecraft/util/worldupdate/WorldUpgrader totalFiles I
+accessible field net/minecraft/util/worldupdate/WorldUpgrader totalChunks I

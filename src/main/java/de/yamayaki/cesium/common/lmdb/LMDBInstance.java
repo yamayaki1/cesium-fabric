@@ -6,6 +6,7 @@ import de.yamayaki.cesium.api.database.IDBInstance;
 import de.yamayaki.cesium.api.database.IKVDatabase;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import org.jetbrains.annotations.NotNull;
 import org.lmdbjava.ByteArrayProxy;
 import org.lmdbjava.CopyFlags;
 import org.lmdbjava.Env;
@@ -22,28 +23,28 @@ import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class LMDBInstance implements IDBInstance {
+    private static final int MAX_COMMIT_TRIES = 3;
+
     private final Reference2ObjectMap<DatabaseSpec<?, ?>, KVDatabase<?, ?>> databases = new Reference2ObjectOpenHashMap<>();
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-    protected final Logger logger;
-    protected final boolean logsMapGrows;
-
     protected final Env<byte[]> env;
 
-    protected final int MAX_COMMIT_TRIES = 3;
-    protected final int resizeStep;
+    private final Logger logger;
+    private final boolean logsMapGrows;
+    private final int resizeStep;
 
     protected volatile boolean dirty = false;
 
     public LMDBInstance(final Path databasePath, final DatabaseSpec<?, ?>[] databases, final Logger logger, final CesiumConfig config) {
         this.logger = logger;
-        this.logsMapGrows = config.logMapGrows();
+        this.logsMapGrows = config.general.logMapGrows;
 
         this.env = Env.create(ByteArrayProxy.PROXY_BA)
                 .setMaxDbs(databases.length)
                 .open(databasePath.toFile(), EnvFlags.MDB_NOLOCK, EnvFlags.MDB_NOSUBDIR);
 
-        this.resizeStep = Arrays.stream(databases).mapToInt(DatabaseSpec::getInitialSize).sum();
+        this.resizeStep = Arrays.stream(databases).mapToInt(DatabaseSpec::initialSize).sum();
 
         EnvInfo info = this.env.info();
         if (info.mapSize < this.resizeStep) {
@@ -51,13 +52,13 @@ public class LMDBInstance implements IDBInstance {
         }
 
         for (DatabaseSpec<?, ?> spec : databases) {
-            this.databases.put(spec, new KVDatabase<>(this, spec, !config.isUncompressed()));
+            this.databases.put(spec, new KVDatabase<>(this, spec, config.compression.enableCompression));
         }
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <K, V> IKVDatabase<K, V> getDatabase(DatabaseSpec<K, V> spec) {
+    public <K, V> @NotNull IKVDatabase<K, V> getDatabase(final @NotNull DatabaseSpec<K, V> spec) {
         KVDatabase<?, ?> database = this.databases.get(spec);
 
         if (database == null) {
@@ -106,7 +107,7 @@ public class LMDBInstance implements IDBInstance {
                     continue;
                 }
 
-                this.logger.info("Commit of transaction failed; trying again ({}/{}): {}", tries, this.MAX_COMMIT_TRIES, l.getMessage());
+                this.logger.info("Commit of transaction failed; trying again ({}/{}): {}", tries, MAX_COMMIT_TRIES, l.getMessage());
             }
 
             if (tries == MAX_COMMIT_TRIES) {
@@ -143,7 +144,7 @@ public class LMDBInstance implements IDBInstance {
         }
     }
 
-    public void createCopy(final Path path) {
+    public void compact(final Path path) {
         this.lock.writeLock()
                 .lock();
 
@@ -156,7 +157,7 @@ public class LMDBInstance implements IDBInstance {
     }
 
     @Override
-    public List<Stat> getStats() {
+    public @NotNull List<Stat> getStats() {
         this.lock.readLock()
                 .lock();
 
@@ -171,18 +172,16 @@ public class LMDBInstance implements IDBInstance {
 
     }
 
-    @Override
-    public ReentrantReadWriteLock getLock() {
+    ReentrantReadWriteLock lock() {
         return this.lock;
     }
 
     @Override
-    public boolean closed() {
-        return this.env.isClosed();
-    }
-
-    @Override
     public void close() {
+        if (this.env.isClosed()) {
+            return;
+        }
+
         this.flushChanges();
 
         for (KVDatabase<?, ?> database : this.databases.values()) {

@@ -4,28 +4,29 @@
   "package": "de.yamayaki.cesium.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "convert_server.MixinMain",
-    "core.MixinMinecraftServer",
-    "core.chunks.MixinChunkMap",
-    "core.chunks.MixinChunkStorage",
-    "core.chunks.MixinEntityStorage",
-    "core.chunks.MixinSectionStorage",
-    "core.chunks.MixinServerLevel",
-    "core.players.MixinMinecraftServer",
-    "core.players.MixinPlayerAdvancements",
-    "core.players.MixinPlayerDataStorage",
-    "core.players.MixinPlayerList",
-    "core.players.MixinServerStatsCounter",
-    "core.storage.MixinIOWorker",
-    "core.storage.MixinSimpleRegionStorage",
-    "core.storage.RegionFileStorageMixin",
-    "core.upgrader.MixinWorldUpgrader"
+    "base.MinecraftServerMixin",
+    "base.dimension.ChunkMapMixin",
+    "base.dimension.ServerLevelMixin",
+    "base.dimension.chunk.ChunkStorageMixin",
+    "base.dimension.entity.EntityStorageMixin",
+    "base.dimension.poi.SectionStorageMixin",
+    "base.players.PlayerAdvancementsMixin",
+    "base.players.PlayerDataStorageMixin",
+    "base.players.PlayerListMixin",
+    "base.players.ServerStatsCounterMixin",
+    "base.storage.IOWorkerMixin",
+    "base.storage.RegionFileStorageMixin",
+    "base.storage.SimpleRegionStorageMixin",
+    "feature.auto_save.MinecraftServerMixin",
+    "feature.convert.MainMixin",
+    "feature.upgrader.SimpleRegionStorageMixin",
+    "feature.upgrader.WorldUpgraderMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "client": [
-    "gui.MixinDebugScreenOverlay",
-    "gui.MixinEditWorldScreen"
+    "feature.debug.DebugScreenOverlayMixin",
+    "feature.maintenance.EditWorldScreenMixin"
   ]
 }

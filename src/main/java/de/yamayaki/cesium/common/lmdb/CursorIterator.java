@@ -4,41 +4,35 @@ import de.yamayaki.cesium.api.database.ICloseableIterator;
 import de.yamayaki.cesium.api.io.ISerializer;
 import org.lmdbjava.Cursor;
 
-import java.io.IOException;
-
 public class CursorIterator<K> implements ICloseableIterator<K> {
+    private final ISerializer<K> keySerializer;
     private final Cursor<byte[]> cursor;
-    private final ISerializer<K> serializer;
 
-    private boolean hasNext;
+    private boolean hadSetPosition = false;
 
-    public CursorIterator(final Cursor<byte[]> cursor, final ISerializer<K> serializer) {
+    public CursorIterator(final ISerializer<K> keySerializer, final Cursor<byte[]> cursor) {
+        this.keySerializer = keySerializer;
         this.cursor = cursor;
-        this.serializer = serializer;
-
-        this.hasNext = this.cursor.first();
     }
 
     @Override
     public boolean hasNext() {
-        return this.hasNext;
+        if (!this.hadSetPosition) {
+            this.hadSetPosition = true;
+
+            return this.cursor.first();
+        }
+
+        return this.cursor.next();
     }
 
     @Override
     public K next() {
-        try {
-            final K key = this.serializer.deserialize(this.cursor.key());
-
-            this.hasNext = this.cursor.next();
-
-            return key;
-        } catch (final IOException e) {
-            throw new RuntimeException("Could not deserialize key", e);
-        }
+        return this.keySerializer.deserializeKey(this.cursor.key());
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         this.cursor.close();
     }
 }

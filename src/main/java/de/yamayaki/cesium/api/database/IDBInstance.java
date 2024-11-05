@@ -1,23 +1,19 @@
 package de.yamayaki.cesium.api.database;
 
+import org.jetbrains.annotations.NotNull;
 import org.lmdbjava.Stat;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public interface IDBInstance {
-    <K, V> IKVDatabase<K, V> getDatabase(final DatabaseSpec<K, V> spec);
+    <K, V> @NotNull IKVDatabase<K, V> getDatabase(final @NotNull DatabaseSpec<K, V> spec);
+
+    @NotNull List<Stat> getStats();
 
     void flushChanges();
 
-    List<Stat> getStats();
-
-    void createCopy(final Path copyPath);
-
-    ReentrantReadWriteLock getLock();
-
-    boolean closed();
+    void compact(final Path copyPath);
 
     void close();
 }

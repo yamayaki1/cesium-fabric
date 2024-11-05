@@ -2,7 +2,9 @@ package de.yamayaki.cesium;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -10,91 +12,70 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 public class CesiumConfig {
-    private final Option<Boolean> log_map_grows = new Option<>(false, "Log when a database map is being resized.");
-    private final Option<Boolean> show_debug_info = new Option<>(false, "Display information on the debug screen.");
-    private final Option<Integer> zstd_compression_level = new Option<>(8, "The zstd library supports compression levels from 1 to 22. The lower the level, the faster the speed (at the cost of compression).");
-    private final Option<Boolean> zstd_use_dictionary = new Option<>(true, "The compression ratio achievable can be highly improved using the built-in dictionary.");
-    private final Option<Boolean> disable_compression = new Option<>(false, "HERE BE DRAGONS!! Forcefully disable all compression. A different database is used for uncompressed data, you can't have compressed and uncompressed worlds at the same time. Compressed worlds have to be reimported.");
-    private final Option<Boolean> force_save_after_tick = new Option<>(false, "HERE BE DRAGONS!! Forces the (internal) to save all player and chunk data after each server tick. This option can slow down your server.");
+    public int dataVersion = 2;
+    public GeneralOptions general = new GeneralOptions();
+    public CompressionOptions compression = new CompressionOptions();
+    public ExperimentalOptions experimental = new ExperimentalOptions();
 
-    public boolean logMapGrows() {
-        return this.log_map_grows.value;
+    public static class GeneralOptions {
+        public boolean showDebugInformation = false;
+        public boolean logMapGrows = false;
     }
 
-    public boolean showDebugInfo() {
-        return this.show_debug_info.value;
-    }
+    public static class CompressionOptions {
+        public boolean enableCompression = true;
+        public ZSTDOptions zstd = new ZSTDOptions();
 
-    public int compressionLevel() {
-        return this.zstd_compression_level.value;
-    }
-
-    public boolean useDictionary() {
-        return this.zstd_use_dictionary.value;
-    }
-
-    public boolean isUncompressed() {
-        return this.disable_compression.value;
-    }
-
-    public boolean saveAfterTick() {
-        return this.force_save_after_tick.value;
-    }
-
-    @SuppressWarnings({"unused", "FieldMayBeFinal", "FieldCanBeLocal"})
-    private static class Option<T> {
-        private T value;
-        private final String comment;
-
-        public Option(T value, String comment) {
-            this.value = value;
-            this.comment = comment;
+        public static class ZSTDOptions {
+            public boolean enableDictionary = true;
+            public int compressionLevel = 8;
         }
+    }
+
+    public static class ExperimentalOptions {
+        public boolean forceSaveDataAfterTick = false;
     }
 
     public static class Loader {
-        private final Path configPath;
-        private final Gson gson;
+        private static final Gson GSON = new GsonBuilder()
+                .serializeNulls()
+                .setPrettyPrinting()
+                .setLenient()
+                .create();
 
-        public Loader(@NotNull final Path configPath) {
-            this.configPath = configPath;
-            this.gson = new GsonBuilder()
-                    .serializeNulls()
-                    .setPrettyPrinting()
-                    .setLenient()
-                    .create();
-        }
-
-        public CesiumConfig get() {
-            try {
-                return this.loadConfig();
-            } catch (final IOException i) {
-                throw new RuntimeException("Failed to initialize Cesium config.", i);
-            }
-        }
-
-        private CesiumConfig loadConfig() throws IOException {
-            CesiumConfig config = null;
-
-            // Load from disk or create new default instance
-            if (Files.isRegularFile(this.configPath, LinkOption.NOFOLLOW_LINKS)) {
-                try (final BufferedReader bufferedReader = Files.newBufferedReader(this.configPath)) {
-                    config = this.gson.fromJson(bufferedReader, CesiumConfig.class);
-                }
-            }
+        public static CesiumConfig load(final @NotNull Path configPath, final @NotNull Logger logger) {
+            CesiumConfig config = read(configPath, logger);
 
             if (config == null) {
                 config = new CesiumConfig();
             }
 
-            // Save to disk and/ or add missing fields
-            try (final BufferedWriter bufferedWriter = Files.newBufferedWriter(this.configPath)) {
-                this.gson.toJson(config, CesiumConfig.class, bufferedWriter);
-            }
+            write(config, configPath);
 
             return config;
+        }
+
+        private static CesiumConfig read(final @NotNull Path configPath, final @NotNull Logger logger) {
+            if (Files.isRegularFile(configPath, LinkOption.NOFOLLOW_LINKS)) {
+                try (final BufferedReader bufferedReader = Files.newBufferedReader(configPath)) {
+                    return GSON.fromJson(bufferedReader, CesiumConfig.class);
+                } catch (final IOException | JsonSyntaxException i) {
+                    logger.error("Could not read config file! Resetting ...", i);
+                }
+            }
+
+            return null;
+        }
+
+        private static void write(final @NotNull CesiumConfig config, final @NotNull Path configPath) {
+            try (final BufferedWriter bufferedWriter = Files.newBufferedWriter(configPath, LinkOption.NOFOLLOW_LINKS, StandardOpenOption.CREATE)) {
+                GSON.toJson(config, CesiumConfig.class, bufferedWriter);
+            } catch (final IOException i) {
+                throw new RuntimeException("Could not write config file!", i);
+            }
         }
     }
 }

@@ -9,14 +9,19 @@ import java.io.IOException;
 import java.util.Arrays;
 
 public class ZSTDCompressor implements ICompressor {
-    private static final int compressionLevel = CesiumMod.config().compressionLevel();
-    private static final boolean usesDictionary = CesiumMod.config().useDictionary();
+    private static final int compressionLevel = CesiumMod.config().compression.zstd.compressionLevel;
+    private static final boolean usesDictionary = CesiumMod.config().compression.zstd.enableDictionary;
 
     private final ZSTDDictionary dictionary = new ZSTDDictionary(compressionLevel);
     private final ThreadLocal<ZSTDContext> ctx = ThreadLocal.withInitial(this::createContext);
 
+    private static long checkError(long rc) throws IOException {
+        if (Zstd.isError(rc)) throw new IOException(Zstd.getErrorName(rc));
+        return rc;
+    }
+
     @Override
-    public byte @NotNull [] compress(final byte @NotNull[] input) throws IOException {
+    public byte @NotNull [] compress(final byte @NotNull [] input) throws IOException {
         final var dst = new byte[(int) Zstd.compressBound(input.length)];
         final var ctx = this.ctx.get().compress();
 
@@ -26,7 +31,7 @@ public class ZSTDCompressor implements ICompressor {
     }
 
     @Override
-    public byte @NotNull [] decompress(byte @NotNull[] input) throws IOException {
+    public byte @NotNull [] decompress(byte @NotNull [] input) throws IOException {
         final var dst = new byte[(int) checkError(Zstd.getFrameContentSize(input))];
         final var ctx = this.ctx.get().decompress(Zstd.getDictIdFromFrame(input));
 
@@ -37,10 +42,5 @@ public class ZSTDCompressor implements ICompressor {
 
     private ZSTDContext createContext() {
         return new ZSTDContext(usesDictionary, compressionLevel, dictionary);
-    }
-
-    private static long checkError(long rc) throws IOException {
-        if (Zstd.isError(rc)) throw new IOException(Zstd.getErrorName(rc));
-        return rc;
     }
 }

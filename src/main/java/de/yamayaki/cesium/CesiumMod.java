@@ -9,6 +9,7 @@ import de.yamayaki.cesium.common.spec.WorldDatabaseSpecs;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.nio.file.Path;
@@ -25,8 +26,8 @@ public class CesiumMod implements ModInitializer {
             PlayerDatabaseSpecs.STATISTICS
     };
 
-    private static Logger cesiumLogger;
-    private static CesiumConfig cesiumConfig;
+    private static @Nullable Logger cesiumLogger;
+    private static @Nullable CesiumConfig cesiumConfig;
 
     @Override
     public void onInitialize() {
@@ -35,7 +36,7 @@ public class CesiumMod implements ModInitializer {
                 .resolve("cesium.json");
 
         cesiumLogger = LogUtils.getLogger();
-        cesiumConfig = new CesiumConfig.Loader(configPath).get();
+        cesiumConfig = CesiumConfig.Loader.load(configPath, cesiumLogger);
     }
 
     public static @NotNull IDBInstance openWorldDB(@NotNull final Path dimensionPath) {
@@ -60,6 +61,6 @@ public class CesiumMod implements ModInitializer {
     }
 
     public static String getFileEnding() {
-        return config().isUncompressed() ? ".uncompressed.db" : ".db";
+        return config().compression.enableCompression ? ".db" : ".uncompressed.db";
     }
 }

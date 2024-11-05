@@ -42,7 +42,7 @@ public class DatabaseCompact extends AbstractTask {
         this.status.set("Compacting level data for " + level.location().getPath());
 
         try {
-            dbInstance.createCopy(copyPath);
+            dbInstance.compact(copyPath);
             dbInstance.close();
 
             if (Files.isRegularFile(copyPath) && Files.isRegularFile(originalPath)) {
@@ -51,9 +51,7 @@ public class DatabaseCompact extends AbstractTask {
         } catch (final Throwable t) {
             throw new RuntimeException("Failed to compact level.", t);
         } finally {
-            if (!dbInstance.closed()) {
-                dbInstance.close();
-            }
+            dbInstance.close();
         }
     }
 }

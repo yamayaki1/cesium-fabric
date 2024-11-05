@@ -11,7 +11,6 @@ import de.yamayaki.cesium.common.DefaultSerializers;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.lmdbjava.Cursor;
 import org.lmdbjava.Dbi;
 import org.lmdbjava.DbiFlags;
 import org.lmdbjava.Env;
@@ -35,16 +34,16 @@ public class KVDatabase<K, V> implements IKVDatabase<K, V> {
 
     private final ICompressor compressor;
 
-    public KVDatabase(final LMDBInstance storage, final DatabaseSpec<K, V> spec, final boolean isCompressed) {
+    public KVDatabase(final LMDBInstance storage, final DatabaseSpec<K, V> spec, final boolean enableCompression) {
         this.storage = storage;
 
         this.env = this.storage.env;
-        this.dbi = this.env.openDbi(spec.getName(), DbiFlags.MDB_CREATE);
+        this.dbi = this.env.openDbi(spec.name(), DbiFlags.MDB_CREATE);
 
-        this.keySerializer = DefaultSerializers.getSerializer(spec.getKeyType());
-        this.valueSerializer = DefaultSerializers.getSerializer(spec.getValueType());
+        this.keySerializer = DefaultSerializers.getSerializer(spec.key());
+        this.valueSerializer = DefaultSerializers.getSerializer(spec.value());
 
-        this.compressor = isCompressed ? DefaultCompressors.ZSTD : DefaultCompressors.NONE;
+        this.compressor = enableCompression ? DefaultCompressors.ZSTD : DefaultCompressors.NONE;
     }
 
     @Override
@@ -58,16 +57,12 @@ public class KVDatabase<K, V> implements IKVDatabase<K, V> {
 
     @Override
     public void addSerialized(final @NotNull K key, final byte @Nullable [] value) {
-        try {
-            this.addUncompressed(key, new byte[][]{this.keySerializer.serialize(key), value});
-        } catch (final IOException i) {
-            throw new RuntimeException("Failed to encode key!", i);
-        }
+        this.addUncompressed(key, this.keySerializer.serializeKey(key), value);
     }
 
-    void addUncompressed(final @NotNull K key, final byte [] @Nullable [] value) {
+    void addUncompressed(final @NotNull K key, final byte @NotNull [] keyBytes, final byte @Nullable [] valueBytes) {
         try {
-            value[1] = (value[1] != null ? this.compressor.compress(value[1]) : null);
+            var value = new byte[][]{keyBytes, valueBytes != null ? this.compressor.compress(valueBytes) : null};
 
             synchronized (this.pending) {
                 this.pending.put(key, value);
@@ -127,11 +122,7 @@ public class KVDatabase<K, V> implements IKVDatabase<K, V> {
 
     @Override
     public byte @Nullable [] getSerialized(final @NotNull K key) {
-        try {
-            return this.getUncompressed(this.keySerializer.serialize(key));
-        } catch (final IOException i) {
-            throw new RuntimeException("Failed to encode key!", i);
-        }
+        return this.getUncompressed(this.keySerializer.serializeKey(key));
     }
 
     byte @Nullable [] getUncompressed(final byte @NotNull [] key) {
@@ -148,8 +139,8 @@ public class KVDatabase<K, V> implements IKVDatabase<K, V> {
         }
     }
 
-    byte @Nullable[] getFromDB(final byte @NotNull [] key) {
-        final ReentrantReadWriteLock lock = this.storage.getLock();
+    byte @Nullable [] getFromDB(final byte @NotNull [] key) {
+        final ReentrantReadWriteLock lock = this.storage.lock();
         lock.readLock()
                 .lock();
 
@@ -163,8 +154,7 @@ public class KVDatabase<K, V> implements IKVDatabase<K, V> {
 
     @Override
     public ICloseableIterator<K> getIterator() {
-        final Cursor<byte[]> cursor = this.dbi.openCursor(this.env.txnRead());
-        return new CursorIterator<>(cursor, this.keySerializer);
+        return new CursorIterator<>(this.keySerializer, this.dbi.openCursor(this.env.txnRead()));
     }
 
     void createSnapshot() {
