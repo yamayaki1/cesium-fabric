@@ -37,7 +37,6 @@ public class IOWorkerMixin implements IStorageSetter<ChunkPos, CompoundTag> {
     }
 
     /**
-     * @author Yamayaki
      * @see IOWorker#loadAsync(ChunkPos)
      */
     @Redirect(
@@ -56,7 +55,6 @@ public class IOWorkerMixin implements IStorageSetter<ChunkPos, CompoundTag> {
     }
 
     /**
-     * @author Yamayaki
      * @see IOWorker#scanChunk(ChunkPos, StreamTagVisitor)
      */
     @Redirect(
@@ -75,7 +73,6 @@ public class IOWorkerMixin implements IStorageSetter<ChunkPos, CompoundTag> {
     }
 
     /**
-     * @author Yamayaki
      * @see IOWorker#synchronize(boolean)
      */
     @Redirect(
