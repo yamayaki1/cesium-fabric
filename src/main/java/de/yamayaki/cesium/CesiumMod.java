@@ -11,6 +11,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
+import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import java.nio.file.Path;
 
@@ -37,6 +38,10 @@ public class CesiumMod implements ModInitializer {
 
         cesiumLogger = LogUtils.getLogger();
         cesiumConfig = CesiumConfig.Loader.load(configPath, cesiumLogger);
+
+        if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+            MixinEnvironment.getCurrentEnvironment().audit();
+        }
     }
 
     public static @NotNull IDBInstance openWorldDB(@NotNull final Path dimensionPath) {
