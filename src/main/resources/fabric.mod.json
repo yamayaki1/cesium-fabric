@@ -12,7 +12,7 @@
     "homepage": "https://github.com/CesiumMC",
     "sources": "https://github.com/CesiumMC/cesium-fabric"
   },
-  "license": "PolyForm Shield License 1.0.0",
+  "license": "LGPL-3.0",
   "environment": "*",
   "entrypoints": {
     "main": [
